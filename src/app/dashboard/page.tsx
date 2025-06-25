@@ -21,6 +21,8 @@ type Attestation = {
     marque: string;
     nombrePlaces: number;
     dateEdition: string;
+    agent: string;
+    telephoneAgent: string;
   };
 
 // Définition du type pour la configuration du tri
@@ -48,7 +50,6 @@ const ConfirmationModal = ({ onConfirm, onCancel, title, message }: { onConfirm:
 );
 
 // Modale d'Aperçu PDF
-// LA MODALE A ÉTÉ MISE À JOUR ICI POUR UTILISER LE COMPOSANT REACT
 const PreviewModal = ({ attestation, onClose }: { attestation: Attestation, onClose: () => void }) => (
     <Modal 
         isOpen={true} 
