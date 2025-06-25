@@ -1,39 +1,69 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) { // Utiliser NextRequest pour accéder à l'URL
+export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
   
     try {
-      // Extraire les paramètres de l'URL
       const { searchParams } = new URL(request.url);
       const page = parseInt(searchParams.get('page') || '1', 10);
       const limit = parseInt(searchParams.get('limit') || '10', 10);
       const sortBy = searchParams.get('sortBy') || 'numFeuillet';
       const sortOrder = searchParams.get('sortOrder') || 'desc';
+      const search = searchParams.get('search') || ''; // Nouveau paramètre de recherche
   
       const skip = (page - 1) * limit;
   
-      // Utiliser une transaction pour obtenir les données et le total en une seule requête
+      // Construire la clause de recherche
+      const searchNumber = parseInt(search, 10);
+      const isNumericSearch = !isNaN(searchNumber);
+  
+      // --- CORRECTION DE LA LOGIQUE DE RECHERCHE ---
+    // On construit la clause de recherche de manière plus type-safe
+    let whereClause: Prisma.AttestationAutoWhereInput = {};
+
+    if (search) {
+      const searchNumber = parseInt(search, 10);
+      const isNumericSearch = !isNaN(searchNumber);
+
+      const orConditions: Prisma.AttestationAutoWhereInput[] = [
+          { numeroPolice: { contains: search, mode: 'insensitive' } },
+          { souscripteur: { contains: search, mode: 'insensitive' } },
+          { immatriculation: { contains: search, mode: 'insensitive' } },
+          { marque: { contains: search, mode: 'insensitive' } },
+          { usage: { contains: search, mode: 'insensitive' } },
+      ];
+
+      if (isNumericSearch) {
+          orConditions.push({ numFeuillet: { equals: searchNumber } });
+      }
+
+      whereClause = {
+          OR: orConditions,
+      };
+    }
+  
       const [attestations, total] = await prisma.$transaction([
         prisma.attestationAuto.findMany({
+          where: whereClause,
           skip: skip,
           take: limit,
           orderBy: {
             [sortBy]: sortOrder,
           },
         }),
-        prisma.attestationAuto.count(),
+        prisma.attestationAuto.count({
+          where: whereClause, // Le comptage doit utiliser le même filtre
+        }),
       ]);
       
-      // Retourner les données ainsi que les informations de pagination
       return NextResponse.json({
         data: attestations,
         total,
@@ -46,7 +76,6 @@ export async function GET(request: Request) { // Utiliser NextRequest pour accé
        return NextResponse.json({ error: "Erreur lors de la récupération des attestations" }, { status: 500 });
     }
   }
-// La fonction POST pour créer une nouvelle attestation avec l'incrémentation
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
