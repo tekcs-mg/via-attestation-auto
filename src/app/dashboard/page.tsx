@@ -4,17 +4,24 @@ import { useState, useEffect } from "react";
 import { format } from 'date-fns';
 import Modal from "@/components/Modal";
 import AttestationForm from "@/components/AttestationForm";
+import AttestationPreview from "@/components/AttestationPreview";
 
 // Définition du type pour une seule attestation
+// Type Attestation mis à jour pour inclure tous les champs nécessaires à l'aperçu
 type Attestation = {
-  id: string;
-  numFeuillet: number;
-  numeroPolice: string;
-  souscripteur: string;
-  immatriculation: string;
-  dateEffet: string;
-  dateEcheance: string;
-};
+    id: string;
+    numFeuillet: number;
+    numeroPolice: string;
+    souscripteur: string;
+    immatriculation: string;
+    dateEffet: string;
+    dateEcheance: string;
+    adresse: string;
+    usage: string;
+    marque: string;
+    nombrePlaces: number;
+    dateEdition: string;
+  };
 
 // Définition du type pour la configuration du tri
 type SortConfig = {
@@ -40,14 +47,30 @@ const ConfirmationModal = ({ onConfirm, onCancel, title, message }: { onConfirm:
     </Modal>
 );
 
+// Modale d'Aperçu PDF
+// LA MODALE A ÉTÉ MISE À JOUR ICI POUR UTILISER LE COMPOSANT REACT
+const PreviewModal = ({ attestation, onClose }: { attestation: Attestation, onClose: () => void }) => (
+    <Modal 
+        isOpen={true} 
+        fitContent={true} // Utilise la prop pour s'adapter au contenu
+        onClose={onClose} 
+        title={`Aperçu de l'Attestation N° ${attestation.numFeuillet}`}
+    >
+        {/* Affiche directement le composant d'aperçu */}
+        <div className="p-4 bg-gray-200">
+             <AttestationPreview attestation={attestation} />
+        </div>
+    </Modal>
+);
+
 export default function DashboardPage() {
   const [attestations, setAttestations] = useState<Attestation[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // États pour les différentes modales
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAttestation, setEditingAttestation] = useState<Attestation | null>(null);
   const [deletingAttestation, setDeletingAttestation] = useState<Attestation | null>(null);
+  const [pdfPreviewAttestation, setPdfPreviewAttestation] = useState<Attestation | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -95,7 +118,7 @@ export default function DashboardPage() {
   const handleFormSuccess = () => {
     setIsCreateModalOpen(false);
     setEditingAttestation(null);
-    fetchAttestations(); // Rafraîchir les données
+    fetchAttestations();
   };
 
   const handleDeleteConfirm = async () => {
@@ -103,7 +126,7 @@ export default function DashboardPage() {
     try {
         await fetch(`/api/attestations/${deletingAttestation.id}`, { method: 'DELETE' });
         setDeletingAttestation(null);
-        fetchAttestations(); // Rafraîchir les données
+        fetchAttestations();
     } catch (error) {
         console.error("Failed to delete attestation", error);
     }
@@ -128,7 +151,7 @@ export default function DashboardPage() {
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg text-white"
+                className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg text-black"
             />
         </div>
         <button
@@ -140,7 +163,7 @@ export default function DashboardPage() {
       </div>
       
       {loading ? (
-        <p>Chargement...</p>
+        <p className="text-black">Chargement...</p>
       ) : (
         <div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
           <table className="w-full">
@@ -165,7 +188,7 @@ export default function DashboardPage() {
                             <td className="px-4 py-3 text-black">{format(new Date(att.dateEffet), 'dd/MM/yyyy')}</td>
                             <td className="px-4 py-3 text-black">
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => alert("Génération PDF à implémenter.")} className="p-1 text-gray-600 hover:text-blue-600" title="Télécharger PDF">📄</button>
+                                    <button onClick={() => setPdfPreviewAttestation(att)} className="p-1 text-gray-600 hover:text-blue-600" title="Afficher l'attestation">📄</button>
                                     <button onClick={() => setEditingAttestation(att)} className="p-1 text-gray-600 hover:text-green-600" title="Éditer">✏️</button>
                                     <button onClick={() => setDeletingAttestation(att)} className="p-1 text-gray-600 hover:text-red-600" title="Supprimer">🗑️</button>
                                 </div>
@@ -216,6 +239,14 @@ export default function DashboardPage() {
             onCancel={() => setDeletingAttestation(null)}
             title="Confirmer la Suppression"
             message={`Êtes-vous sûr de vouloir supprimer l'attestation N° Feuillet ${deletingAttestation.numFeuillet} ? Cette action est irréversible.`}
+        />
+      )}
+
+      {/* Modale d'Aperçu PDF */}
+      {pdfPreviewAttestation && (
+        <PreviewModal
+            attestation={pdfPreviewAttestation}
+            onClose={() => setPdfPreviewAttestation(null)}
         />
       )}
     </div>

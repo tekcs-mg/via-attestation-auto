@@ -6,7 +6,6 @@
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"
   },
-
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -24,6 +23,7 @@
     "next-auth": "^4.24.11",
     "pg": "^8.16.2",
     "prisma": "^6.10.1",
+    "puppeteer-core": "^24.10.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

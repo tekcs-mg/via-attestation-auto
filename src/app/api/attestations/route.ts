@@ -2,9 +2,9 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-
 const prisma = new PrismaClient();
 
+// Fonction GET avec une gestion d'erreur plus détaillée
 export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -17,51 +17,35 @@ export async function GET(request: Request) {
       const limit = parseInt(searchParams.get('limit') || '10', 10);
       const sortBy = searchParams.get('sortBy') || 'numFeuillet';
       const sortOrder = searchParams.get('sortOrder') || 'desc';
-      const search = searchParams.get('search') || ''; // Nouveau paramètre de recherche
+      const search = searchParams.get('search') || '';
   
       const skip = (page - 1) * limit;
   
-      // Construire la clause de recherche
-      const searchNumber = parseInt(search, 10);
-      const isNumericSearch = !isNaN(searchNumber);
-  
-      // --- CORRECTION DE LA LOGIQUE DE RECHERCHE ---
-    // On construit la clause de recherche de manière plus type-safe
-    let whereClause: Prisma.AttestationAutoWhereInput = {};
-
-    if (search) {
-      const searchNumber = parseInt(search, 10);
-      const isNumericSearch = !isNaN(searchNumber);
-
-      const orConditions: Prisma.AttestationAutoWhereInput[] = [
-          { numeroPolice: { contains: search, mode: 'insensitive' } },
-          { souscripteur: { contains: search, mode: 'insensitive' } },
-          { immatriculation: { contains: search, mode: 'insensitive' } },
-          { marque: { contains: search, mode: 'insensitive' } },
-          { usage: { contains: search, mode: 'insensitive' } },
-      ];
-
-      if (isNumericSearch) {
-          orConditions.push({ numFeuillet: { equals: searchNumber } });
+      let whereClause: Prisma.AttestationAutoWhereInput = {};
+      if (search) {
+        const searchNumber = parseInt(search, 10);
+        const isNumericSearch = !isNaN(searchNumber);
+        const orConditions: Prisma.AttestationAutoWhereInput[] = [
+            { numeroPolice: { contains: search, mode: 'insensitive' } },
+            { souscripteur: { contains: search, mode: 'insensitive' } },
+            { immatriculation: { contains: search, mode: 'insensitive' } },
+            { marque: { contains: search, mode: 'insensitive' } },
+            { usage: { contains: search, mode: 'insensitive' } },
+        ];
+        if (isNumericSearch) {
+            orConditions.push({ numFeuillet: { equals: searchNumber } });
+        }
+        whereClause = { OR: orConditions };
       }
-
-      whereClause = {
-          OR: orConditions,
-      };
-    }
   
       const [attestations, total] = await prisma.$transaction([
         prisma.attestationAuto.findMany({
           where: whereClause,
           skip: skip,
           take: limit,
-          orderBy: {
-            [sortBy]: sortOrder,
-          },
+          orderBy: { [sortBy]: sortOrder },
         }),
-        prisma.attestationAuto.count({
-          where: whereClause, // Le comptage doit utiliser le même filtre
-        }),
+        prisma.attestationAuto.count({ where: whereClause }),
       ]);
       
       return NextResponse.json({
@@ -73,10 +57,14 @@ export async function GET(request: Request) {
       });
   
     } catch (error) {
-       return NextResponse.json({ error: "Erreur lors de la récupération des attestations" }, { status: 500 });
+       // Affiche l'erreur complète dans la console du serveur pour un débogage précis
+       console.error("Erreur dans GET /api/attestations:", error); 
+       return NextResponse.json({ error: "Erreur interne du serveur lors de la récupération des attestations." }, { status: 500 });
     }
   }
-export async function POST(request: Request) {
+  
+  // Fonction POST pour créer une attestation
+  export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -84,42 +72,25 @@ export async function POST(request: Request) {
   
     try {
       const body = await request.json();
+      const dataForPrisma = {
+        ...body,
+        numFeuillet: Number(body.numFeuillet),
+        dateEffet: new Date(body.dateEffet),
+        dateEcheance: new Date(body.dateEcheance),
+      };
   
-      // On utilise une transaction interactive pour garantir l'intégrité des données
-      const newAttestation = await prisma.$transaction(async (tx) => {
-        // 1. Trouver l'attestation avec le plus haut numFeuillet
-        const lastAttestation = await tx.attestationAuto.findFirst({
-          orderBy: {
-            numFeuillet: 'desc',
-          },
-        });
-  
-        // 2. Déterminer le nouveau numFeuillet
-        const newNumFeuillet = lastAttestation ? lastAttestation.numFeuillet + 1 : 1;
-  
-        // 3. Préparer les données pour la création
-        const dataForPrisma = {
-          ...body,
-          numFeuillet: newNumFeuillet, // On assigne le nouveau numéro
-          dateEffet: new Date(body.dateEffet),
-          dateEcheance: new Date(body.dateEcheance),
-        };
-  
-        // 4. Créer la nouvelle attestation à l'intérieur de la transaction
-        const createdAttestation = await tx.attestationAuto.create({
-          data: dataForPrisma,
-        });
-  
-        return createdAttestation;
-      });
-  
+      const newAttestation = await prisma.attestationAuto.create({ data: dataForPrisma });
       return NextResponse.json(newAttestation, { status: 201 });
   
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+         return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
+      }
       if (error instanceof Error && error.name === 'PrismaClientValidationError') {
          return NextResponse.json({ error: "Erreur de validation des données.", details: error.message }, { status: 400 });
       }
-      console.error(error); // Affiche l'erreur complète dans la console du serveur pour le débogage
+      console.error("Erreur dans POST /api/attestations:", error);
       return NextResponse.json({ error: "Erreur lors de la création de l'attestation" }, { status: 500 });
     }
   }
+  

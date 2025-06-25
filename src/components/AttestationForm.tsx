@@ -1,10 +1,11 @@
-// Fichier : src/components/AttestationForm.tsx
+// Fichier: src/components/AttestationForm.tsx
 'use client';
+
 import { useState, type FormEvent, useEffect } from 'react';
 
-// Définition du type de données que le formulaire manipule
 type FormData = {
   id?: string;
+  numFeuillet: number | string; // Accepte string pour la saisie
   numeroPolice: string;
   souscripteur: string;
   adresse: string;
@@ -16,7 +17,6 @@ type FormData = {
   immatriculation: string;
 };
 
-// Props du composant, incluant les données initiales optionnelles
 type AttestationFormProps = {
   initialData?: Partial<FormData> | null;
   onSuccess: () => void;
@@ -25,8 +25,9 @@ type AttestationFormProps = {
 
 export default function AttestationForm({ initialData, onSuccess, onCancel }: AttestationFormProps) {
   const [formData, setFormData] = useState<FormData>({
+    numFeuillet: '',
     numeroPolice: '',
-    souscripteur: '',
+    souscripteur: '', // Champ ajouté à l'état initial
     adresse: '',
     dateEffet: '',
     dateEcheance: '',
@@ -43,13 +44,13 @@ export default function AttestationForm({ initialData, onSuccess, onCancel }: At
       return new Date(date).toISOString().split('T')[0];
   }
 
-  // Pré-remplit le formulaire si des données initiales sont fournies (pour l'édition)
   useEffect(() => {
     if (initialData) {
       setFormData({
         id: initialData.id,
+        numFeuillet: initialData.numFeuillet || '',
         numeroPolice: initialData.numeroPolice || '',
-        souscripteur: initialData.souscripteur || '',
+        souscripteur: initialData.souscripteur || '', // Champ ajouté à l'initialisation
         adresse: initialData.adresse || '',
         dateEffet: formatDateForInput(initialData.dateEffet),
         dateEcheance: formatDateForInput(initialData.dateEcheance),
@@ -84,6 +85,7 @@ export default function AttestationForm({ initialData, onSuccess, onCancel }: At
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             ...formData,
+            numFeuillet: Number(formData.numFeuillet),
             nombrePlaces: Number(formData.nombrePlaces)
         }),
       });
@@ -104,46 +106,71 @@ export default function AttestationForm({ initialData, onSuccess, onCancel }: At
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Le JSX du formulaire reste le même */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="numFeuillet" className="block text-sm font-medium text-gray-700">Numéro de Feuillet</label>
+          <input 
+            type="number" 
+            name="numFeuillet" 
+            id="numFeuillet" 
+            required 
+            value={formData.numFeuillet} 
+            onChange={handleChange}
+            readOnly={!!initialData}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 read-only:bg-gray-100 text-black" 
+          />
+        </div>
+        
         <div>
           <label htmlFor="numeroPolice" className="block text-sm font-medium text-gray-700">Numéro de Police</label>
           <input type="text" name="numeroPolice" id="numeroPolice" required value={formData.numeroPolice} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
-        <div>
+
+        {/* --- CHAMP SOUSCRIPTEUR RESTAURÉ --- */}
+        <div className="md:col-span-2">
           <label htmlFor="souscripteur" className="block text-sm font-medium text-gray-700">Souscripteur</label>
           <input type="text" name="souscripteur" id="souscripteur" required value={formData.souscripteur} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+        
         <div className="md:col-span-2">
           <label htmlFor="adresse" className="block text-sm font-medium text-gray-700">Adresse</label>
           <input type="text" name="adresse" id="adresse" required value={formData.adresse} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+        
         <div>
           <label htmlFor="dateEffet" className="block text-sm font-medium text-gray-700">Date d'Effet</label>
           <input type="date" name="dateEffet" id="dateEffet" required value={formData.dateEffet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+
         <div>
           <label htmlFor="dateEcheance" className="block text-sm font-medium text-gray-700">Date d'Echéance</label>
           <input type="date" name="dateEcheance" id="dateEcheance" required value={formData.dateEcheance} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+
         <div>
           <label htmlFor="usage" className="block text-sm font-medium text-gray-700">Usage</label>
           <input type="text" name="usage" id="usage" required value={formData.usage} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+
         <div>
           <label htmlFor="marque" className="block text-sm font-medium text-gray-700">Marque</label>
           <input type="text" name="marque" id="marque" required value={formData.marque} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+
         <div>
           <label htmlFor="immatriculation" className="block text-sm font-medium text-gray-700">Immatriculation</label>
           <input type="text" name="immatriculation" id="immatriculation" required value={formData.immatriculation} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+
         <div>
           <label htmlFor="nombrePlaces" className="block text-sm font-medium text-gray-700">Nombre de Places</label>
           <input type="number" name="nombrePlaces" id="nombrePlaces" required value={formData.nombrePlaces} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
         </div>
+        
       </div>
+
       {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+
       <div className="flex justify-end pt-4 border-t mt-6">
         <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg mr-4 hover:bg-gray-300">Annuler</button>
         <button type="submit" disabled={isLoading} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-blue-300">{isLoading ? 'Enregistrement...' : 'Enregistrer'}</button>
