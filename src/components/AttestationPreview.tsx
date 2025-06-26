@@ -34,10 +34,10 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
   const verificationUrl = `https://via-assurance.mg/verify/${attestation.id}`;
 
   return (
-    <div className="w-[1120px] h-[400px] border border-black flex text-[10px] font-sans bg-white p-1">
+    <div className="w-[982.67px] h-[415.74px] border border-black flex text-[10px] font-sans bg-white p-1">
       
       {/* Colonne gauche : Talon */}
-      <div className="w-[23%] border-r border-dashed border-black px-2 py-1 flex flex-col">
+      <div className="w-[21.15%] border-r border-dashed border-black px-2 py-1 flex flex-col">
         <div className="font-bold text-blue-900 text-[11px]">VIA Assurance Madagascar</div>
         <div className="text-[9px] mt-2 text-blue-900"><div className="font-bold">Masovohatra</div><div className="font-normal">Agence</div></div>
         <div className="font-bold text-[9px] text-black">{attestation.agent}</div>
@@ -72,7 +72,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne centrale : Attestation */}
-          <div className="w-[57%] px-2 py-1 flex flex-col">
+          <div className="w-[57,692%] px-2 py-1 flex flex-col">
               <div className="text-center">
                   <div className="text-[32px] font-bold text-blue-800 leading-none">VIA</div>
                   <div className="font-bold text-[11px] text-blue-900">FANAMARINAM-PIANTOHANA</div>
@@ -150,7 +150,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
           </div>
 
       {/* Colonne droite : Volet à coller */}
-      <div className="w-[20%] border-l border-dashed border-black flex flex-col">
+      <div className="w-[21.153%] border-l border-dashed border-black flex flex-col">
         <div className="h-1/2 p-2 flex flex-col">
             <div className="text-[10px] text-left">
                 <div className="font-bold text-blue-900">VIA Assurance Madagascar</div>
