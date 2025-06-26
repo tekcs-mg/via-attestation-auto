@@ -27,7 +27,8 @@
     "puppeteer-core": "^24.10.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "recharts": "^3.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
