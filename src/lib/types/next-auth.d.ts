@@ -12,6 +12,7 @@ declare module "next-auth" {
     user: {
       /** Le rôle de l'utilisateur */
       role: Role;
+      id: string
     } & DefaultSession["user"]; // Pour conserver les propriétés par défaut (name, email, image)
   }
 
@@ -25,5 +26,6 @@ declare module "next-auth/jwt" {
   /** Retourné par le callback `jwt` et `getToken` */
   interface JWT extends DefaultJWT {
     role: Role;
+    id: string;
   }
 }
