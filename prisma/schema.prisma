@@ -59,7 +59,7 @@ model VerificationToken {
 model AttestationAuto {
   id              String    @id @default(cuid())
   numFeuillet     Int       @unique
-  numeroPolice    String    @unique
+  numeroPolice    String    
   agent           String    @default("VIA Assurance Madagascar")
   telephoneAgent  String    @default("+261 38 00 842 00")
   souscripteur    String

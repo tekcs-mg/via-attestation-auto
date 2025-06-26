@@ -84,6 +84,7 @@ export async function GET(request: Request) {
   
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        console.log("error", error);
          return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
       }
       if (error instanceof Error && error.name === 'PrismaClientValidationError') {

@@ -2,28 +2,28 @@
 'use client';
 import { useState, useEffect } from "react";
 import { format } from 'date-fns';
+import Link from 'next/link'; // Importer Link pour la navigation
 import Modal from "@/components/Modal";
 import AttestationForm from "@/components/AttestationForm";
 import AttestationPreview from "@/components/AttestationPreview";
 
-// Définition du type pour une seule attestation
-// Type Attestation mis à jour pour inclure tous les champs nécessaires à l'aperçu
+// Type Attestation mis à jour pour inclure tous les champs
 type Attestation = {
-    id: string;
-    numFeuillet: number;
-    numeroPolice: string;
-    souscripteur: string;
-    immatriculation: string;
-    dateEffet: string;
-    dateEcheance: string;
-    adresse: string;
-    usage: string;
-    marque: string;
-    nombrePlaces: number;
-    dateEdition: string;
-    agent: string;
-    telephoneAgent: string;
-  };
+  id: string;
+  numFeuillet: number;
+  numeroPolice: string;
+  souscripteur: string;
+  immatriculation: string;
+  dateEffet: string;
+  dateEcheance: string;
+  adresse: string;
+  usage: string;
+  marque: string;
+  nombrePlaces: number;
+  dateEdition: string;
+  agent: string;
+  telephoneAgent: string;
+};
 
 // Définition du type pour la configuration du tri
 type SortConfig = {
@@ -49,15 +49,14 @@ const ConfirmationModal = ({ onConfirm, onCancel, title, message }: { onConfirm:
     </Modal>
 );
 
-// Modale d'Aperçu PDF
+// Modale d'aperçu
 const PreviewModal = ({ attestation, onClose }: { attestation: Attestation, onClose: () => void }) => (
     <Modal 
         isOpen={true} 
-        fitContent={true} // Utilise la prop pour s'adapter au contenu
+        fitContent={true} 
         onClose={onClose} 
         title={`Aperçu de l'Attestation N° ${attestation.numFeuillet}`}
     >
-        {/* Affiche directement le composant d'aperçu */}
         <div className="p-4 bg-gray-200">
              <AttestationPreview attestation={attestation} />
         </div>
@@ -68,10 +67,9 @@ export default function DashboardPage() {
   const [attestations, setAttestations] = useState<Attestation[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAttestation, setEditingAttestation] = useState<Attestation | null>(null);
   const [deletingAttestation, setDeletingAttestation] = useState<Attestation | null>(null);
-  const [pdfPreviewAttestation, setPdfPreviewAttestation] = useState<Attestation | null>(null);
+  const [previewAttestation, setPreviewAttestation] = useState<Attestation | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -117,7 +115,6 @@ export default function DashboardPage() {
   }, [currentPage, itemsPerPage, sortConfig, debouncedSearchQuery]);
 
   const handleFormSuccess = () => {
-    setIsCreateModalOpen(false);
     setEditingAttestation(null);
     fetchAttestations();
   };
@@ -155,12 +152,13 @@ export default function DashboardPage() {
                 className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg text-black"
             />
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex-shrink-0"
-        >
-          Créer une Attestation
-        </button>
+        <Link href="/dashboard/new">
+            <button
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex-shrink-0"
+            >
+              Créer une Attestation
+            </button>
+        </Link>
       </div>
       
       {loading ? (
@@ -189,7 +187,7 @@ export default function DashboardPage() {
                             <td className="px-4 py-3 text-black">{format(new Date(att.dateEffet), 'dd/MM/yyyy')}</td>
                             <td className="px-4 py-3 text-black">
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => setPdfPreviewAttestation(att)} className="p-1 text-gray-600 hover:text-blue-600" title="Afficher l'attestation">📄</button>
+                                    <button onClick={() => setPreviewAttestation(att)} className="p-1 text-gray-600 hover:text-blue-600" title="Afficher l'attestation">📄</button>
                                     <button onClick={() => setEditingAttestation(att)} className="p-1 text-gray-600 hover:text-green-600" title="Éditer">✏️</button>
                                     <button onClick={() => setDeletingAttestation(att)} className="p-1 text-gray-600 hover:text-red-600" title="Supprimer">🗑️</button>
                                 </div>
@@ -221,11 +219,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Modale de Création */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Créer une Nouvelle Attestation">
-        <AttestationForm onSuccess={handleFormSuccess} onCancel={() => setIsCreateModalOpen(false)} />
-      </Modal>
-
       {/* Modale d'Édition */}
       {editingAttestation && (
           <Modal isOpen={!!editingAttestation} onClose={() => setEditingAttestation(null)} title={`Éditer l'Attestation N° ${editingAttestation.numFeuillet}`}>
@@ -243,11 +236,11 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Modale d'Aperçu PDF */}
-      {pdfPreviewAttestation && (
+      {/* Modale d'Aperçu avec le composant React */}
+      {previewAttestation && (
         <PreviewModal
-            attestation={pdfPreviewAttestation}
-            onClose={() => setPdfPreviewAttestation(null)}
+            attestation={previewAttestation}
+            onClose={() => setPreviewAttestation(null)}
         />
       )}
     </div>

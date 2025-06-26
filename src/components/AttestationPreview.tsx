@@ -31,7 +31,7 @@ const BilingualLabel = ({ malagasy, francais }: { malagasy: string, francais: st
 
 export default function AttestationPreview({ attestation }: { attestation: Attestation }) {
   // Construire l'URL de vérification pour le QR code
-  const verificationUrl = `https://via-assurance.mg/verify/${attestation.id}`;
+  const verificationUrl = `${process.env.NEXT_PUBLIC_URL}/verify/${attestation.id}`;
 
   return (
     <div className="w-[982.67px] h-[415.74px] border border-black flex text-[10px] font-sans bg-white p-1">
