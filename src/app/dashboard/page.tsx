@@ -171,7 +171,6 @@ export default function DashboardPage() {
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     
-    // --- LOGIQUE DE FETCH AMÉLIORÉE ---
     const fetchAttestations = useCallback(async (selectAfterFetch?: number[]) => {
       setLoading(true);
       if(!selectAfterFetch) {
@@ -195,7 +194,6 @@ export default function DashboardPage() {
               setAttestations(data);
               setTotalPages(total);
 
-              // Logique de sélection après le fetch
               if (selectAfterFetch) {
                   const idsToSelect = data
                       .filter((att: Attestation) => selectAfterFetch.includes(att.numFeuillet))
@@ -251,6 +249,14 @@ export default function DashboardPage() {
         window.location.href = `/api/attestations/export?${params.toString()}`;
     };
 
+    const handlePrintSelection = () => {
+        if (selectedRows.length === 0) return;
+        const params = new URLSearchParams({
+            ids: selectedRows.join(','),
+        });
+        window.open(`/api/attestations/print?${params.toString()}`, '_blank');
+    };
+
     const handleSelectRow = (id: string) => {
         setSelectedRows(prev => 
             prev.includes(id) 
@@ -281,7 +287,6 @@ export default function DashboardPage() {
     const handleImportSuccess = (message: string, processedNumFeuillets: number[]) => {
         setIsImportModalOpen(false);
         alert(message);
-        // On ne met plus à jour d'état ici, on passe directement la liste à fetchAttestations
         fetchAttestations(processedNumFeuillets);
     };
 
@@ -297,7 +302,18 @@ export default function DashboardPage() {
                 <option value="EXPIRING_SOON">Expire bientôt</option>
                 <option value="EXPIRED">Expirés</option>
             </select>
-            {selectedRows.length > 0 ? ( <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600"> Exporter la sélection ({selectedRows.length}) </button> ) : ( <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black"> Tout Exporter </button> )}
+            {selectedRows.length > 0 ? (
+                <>
+                    <button onClick={handlePrintSelection} className="p-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600">
+                        Imprimer la sélection ({selectedRows.length})
+                    </button>
+                    <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600">
+                        Exporter ({selectedRows.length})
+                    </button>
+                </>
+            ) : ( 
+                <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Tout Exporter</button> 
+            )}
             <button onClick={() => setIsImportModalOpen(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Importer</button>
             <Link href="/dashboard/new"><button className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">Créer</button></Link>
           </div>
@@ -327,38 +343,32 @@ export default function DashboardPage() {
                     </tr>
                 </thead>
                 <tbody>
-                    {attestations.length > 0 ? (
-                        attestations.map((att) => (
-                            <tr key={att.id} className={`border-b hover:bg-gray-50 ${selectedRows.includes(att.id) ? 'bg-blue-50' : ''}`}>
-                                <td className="px-4 py-3">
-                                    <input 
-                                      type="checkbox"
-                                      checked={selectedRows.includes(att.id)}
-                                      onChange={() => handleSelectRow(att.id)}
-                                      className="form-checkbox h-4 w-4"
-                                    />
-                                </td>
-                                <td className="px-4 py-3 font-mono text-sm text-black">{`${att.numFeuillet}`.padStart(6, '0')}</td>
-                                <td className="px-4 py-3 text-black">{att.numeroPolice}</td>
-                                <td className="px-4 py-3 text-black">{att.souscripteur}</td>
-                                <td className="px-4 py-3 text-black">{att.immatriculation}</td>
-                                <td className="px-4 py-3"><StatusPill dateEcheance={att.dateEcheance} /></td>
-                                <td className="px-4 py-3 text-black">{att.creator?.name || 'N/A'}</td>
-                                <td className="px-4 py-3 text-black">
-                                    <div className="flex items-center gap-2">
-                                        <button onClick={() => handleRenew(att)} title="Renouveler">🔄</button>
-                                        <button onClick={() => setPreviewAttestation(att)} title="Afficher">📄</button>
-                                        <button onClick={() => setEditingAttestation(att)} title="Éditer">✏️</button>
-                                        <button onClick={() => setDeletingAttestation(att)} title="Supprimer">🗑️</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={8} className="text-center py-8 text-gray-500">Aucune attestation trouvée.</td>
+                    {attestations.map((att) => (
+                        <tr key={att.id} className={`border-b hover:bg-gray-50 ${selectedRows.includes(att.id) ? 'bg-blue-50' : ''}`}>
+                            <td className="px-4 py-3">
+                                <input 
+                                  type="checkbox"
+                                  checked={selectedRows.includes(att.id)}
+                                  onChange={() => handleSelectRow(att.id)}
+                                  className="form-checkbox h-4 w-4"
+                                />
+                            </td>
+                            <td className="px-4 py-3 font-mono text-sm text-black">{`${att.numFeuillet}`.padStart(6, '0')}</td>
+                            <td className="px-4 py-3 text-black">{att.numeroPolice}</td>
+                            <td className="px-4 py-3 text-black">{att.souscripteur}</td>
+                            <td className="px-4 py-3 text-black">{att.immatriculation}</td>
+                            <td className="px-4 py-3"><StatusPill dateEcheance={att.dateEcheance} /></td>
+                            <td className="px-4 py-3 text-black">{att.creator?.name || 'N/A'}</td>
+                            <td className="px-4 py-3 text-black">
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => handleRenew(att)} title="Renouveler">🔄</button>
+                                    <button onClick={() => setPreviewAttestation(att)} title="Afficher">📄</button>
+                                    <button onClick={() => setEditingAttestation(att)} title="Éditer">✏️</button>
+                                    <button onClick={() => setDeletingAttestation(att)} title="Supprimer">🗑️</button>
+                                </div>
+                            </td>
                         </tr>
-                    )}
+                    ))}
                 </tbody>
             </table>
             <div className="flex justify-between items-center mt-4">
