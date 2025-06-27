@@ -1,6 +1,6 @@
 // Fichier: src/app/dashboard/page.tsx
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -89,7 +89,7 @@ const SortArrow = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
 };
 
 // --- COMPOSANT POUR LA MODALE D'IMPORT ---
-const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (message: string) => void }) => {
+const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (message: string, processedNumFeuillets: number[]) => void }) => {
     const [file, setFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -120,7 +120,7 @@ const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (
             if (!res.ok) {
                 throw new Error(result.error || "Une erreur inconnue est survenue.");
             }
-            onSuccess(result.message);
+            onSuccess(result.message, result.processedNumFeuillets);
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -170,19 +170,13 @@ export default function DashboardPage() {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
-            setCurrentPage(1);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
-    const fetchAttestations = async () => {
+    
+    // --- LOGIQUE DE FETCH AMÉLIORÉE ---
+    const fetchAttestations = useCallback(async (selectAfterFetch?: number[]) => {
       setLoading(true);
-      setSelectedRows([]);
+      if(!selectAfterFetch) {
+        setSelectedRows([]);
+      }
       try {
           const params = new URLSearchParams({
               page: String(currentPage),
@@ -200,18 +194,26 @@ export default function DashboardPage() {
               const { data, totalPages: total } = await res.json();
               setAttestations(data);
               setTotalPages(total);
+
+              // Logique de sélection après le fetch
+              if (selectAfterFetch) {
+                  const idsToSelect = data
+                      .filter((att: Attestation) => selectAfterFetch.includes(att.numFeuillet))
+                      .map((att: Attestation) => att.id);
+                  setSelectedRows(idsToSelect);
+              }
           }
       } catch (error) {
           console.error("Failed to fetch attestations", error);
       } finally {
           setLoading(false);
       }
-    };
+    }, [currentPage, itemsPerPage, sortConfig, debouncedSearchQuery, dateFilter, statusFilter]);
   
     useEffect(() => {
         fetchAttestations();
-    }, [currentPage, itemsPerPage, sortConfig, debouncedSearchQuery, dateFilter, statusFilter]);
-
+    }, [fetchAttestations]);
+    
     const handleFormSuccess = () => {
         setEditingAttestation(null);
         fetchAttestations();
@@ -275,11 +277,12 @@ export default function DashboardPage() {
     };
 
     const isAllSelected = attestations.length > 0 && selectedRows.length === attestations.length;
-    
-    const handleImportSuccess = (message: string) => {
+
+    const handleImportSuccess = (message: string, processedNumFeuillets: number[]) => {
         setIsImportModalOpen(false);
         alert(message);
-        fetchAttestations();
+        // On ne met plus à jour d'état ici, on passe directement la liste à fetchAttestations
+        fetchAttestations(processedNumFeuillets);
     };
 
     return (
