@@ -248,7 +248,7 @@ export default function DashboardPage() {
         }
         window.location.href = `/api/attestations/export?${params.toString()}`;
     };
-
+    
     const handlePrintSelection = () => {
         if (selectedRows.length === 0) return;
         const params = new URLSearchParams({
@@ -292,8 +292,11 @@ export default function DashboardPage() {
 
     return (
       <div className="p-8">
+        <div className="mb-6">
+            <h1 className="text-3xl font-bold text-black">Tableau de Bord</h1>
+        </div>
+
         <div className="flex justify-between items-center mb-6 gap-4">
-          <h1 className="text-3xl font-bold text-black">Tableau de Bord</h1>
           <div className="flex items-center gap-2">
             <input type="text" placeholder="Rechercher..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full max-w-xs p-2 border rounded-lg text-black" />
             <select onChange={e => setStatusFilter(e.target.value)} value={statusFilter} className="p-2 border rounded-lg text-black">
@@ -302,17 +305,19 @@ export default function DashboardPage() {
                 <option value="EXPIRING_SOON">Expire bientôt</option>
                 <option value="EXPIRED">Expirés</option>
             </select>
+          </div>
+          <div className="flex items-center gap-2">
             {selectedRows.length > 0 ? (
                 <>
                     <button onClick={handlePrintSelection} className="p-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600">
-                        Imprimer la sélection ({selectedRows.length})
+                        Imprimer ({selectedRows.length})
                     </button>
                     <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600">
                         Exporter ({selectedRows.length})
                     </button>
                 </>
             ) : ( 
-                <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Tout Exporter</button> 
+                <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black"> Tout Exporter </button> 
             )}
             <button onClick={() => setIsImportModalOpen(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Importer</button>
             <Link href="/dashboard/new"><button className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">Créer</button></Link>
