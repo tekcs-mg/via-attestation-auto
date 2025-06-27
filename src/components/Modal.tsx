@@ -26,7 +26,7 @@ export default function Modal({ isOpen, onClose, title, children, fitContent = f
 
   return (
     <div 
-      className="fixed inset-0 bg-transparent bg-opacity-50 z-50 flex justify-center items-center p-4"
+      className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4"
       onClick={onClose} 
     >
       <div 
