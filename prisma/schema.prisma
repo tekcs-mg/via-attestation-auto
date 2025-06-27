@@ -1,28 +1,43 @@
+// Fichier: prisma/schema.prisma
+
+// Configuration du générateur client Prisma
 generator client {
   provider = "prisma-client-js"
 }
+
+// Configuration de la source de données (notre base PostgreSQL)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// --- Modèles d'Authentification ---
+// Enum pour définir les rôles utilisateurs de manière stricte
 enum Role {
   USER
   ADMIN
 }
+
+// --- MODÈLES POUR L'AUTHENTIFICATION (Next-Auth.js) ---
+
+// Modèle pour les utilisateurs de l'application
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  password      String?
+  password      String?   // Le mot de passe est stocké hashé
   role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+
+  // Relation: Un utilisateur peut créer plusieurs attestations
+  attestations AttestationAuto[] @relation("CreatedBy")
+
   accounts      Account[]
   sessions      Session[]
 }
 
+// Modèle pour lier les comptes externes (ex: Google, Facebook), non utilisé ici mais requis par Next-Auth
 model Account {
   id                 String  @id @default(cuid())
   userId             String
@@ -36,10 +51,11 @@ model Account {
   scope              String?
   id_token           String? @db.Text
   session_state      String?
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
+// Modèle pour gérer les sessions de connexion des utilisateurs
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -48,6 +64,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Modèle pour les tokens de vérification (ex: pour la réinitialisation de mot de passe)
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -55,11 +72,14 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// --- Modèle Métier Principal ---
+
+// --- MODÈLE MÉTIER PRINCIPAL ---
+
+// Modèle pour nos attestations d'assurance automobile
 model AttestationAuto {
   id              String    @id @default(cuid())
   numFeuillet     Int       @unique
-  numeroPolice    String    
+  numeroPolice    String
   agent           String    @default("VIA Assurance Madagascar")
   telephoneAgent  String    @default("+261 38 00 842 00")
   souscripteur    String
@@ -73,4 +93,6 @@ model AttestationAuto {
   dateEdition     DateTime  @default(now())
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  creatorId       String
+  creator         User      @relation("CreatedBy", fields: [creatorId], references: [id])
 }

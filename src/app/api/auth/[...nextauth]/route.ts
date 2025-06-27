@@ -1,11 +1,12 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+// L'objet de configuration est maintenant défini directement dans ce fichier
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -20,24 +21,19 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Données de connexion invalides");
         }
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
         });
         if (!user || !user.password) {
           throw new Error("Utilisateur non trouvé ou non enregistré avec un mot de passe");
         }
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          credentials.password as string,
           user.password
         );
         if (!isPasswordValid) {
           throw new Error("Mot de passe incorrect");
         }
-        return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-        };
+        return user;
       },
     }),
   ],
@@ -46,11 +42,17 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = user.role;
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session?.user) session.user.role = token.role;
+      if (session?.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as Role;
+      }
       return session;
     },
   },
@@ -60,5 +62,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+// On exporte directement le handler
 const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };

@@ -19,6 +19,7 @@ declare module "next-auth" {
   /** Le modèle User tel qu'il est dans la base de données */
   interface User extends DefaultUser {
     role: Role;
+    id: string;
   }
 }
 
