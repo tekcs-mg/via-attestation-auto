@@ -13,16 +13,15 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Le tableau des liens a été mis à jour
   const navItems = [
     { href: '/dashboard', icon: Icons.dashboard, label: 'Tableau de Bord' },
     { href: '/dashboard/new', icon: Icons.add, label: 'Créer une Attestation' },
-    { href: '/dashboard/reports', icon: Icons.reports, label: 'Rapports' }, // NOUVEAU LIEN
-    // Ajoutez ici d'autres liens de menu...
+    { href: '/dashboard/reports', icon: Icons.reports, label: 'Rapports' },
   ];
 
   const adminNavItems = [
     { href: '/dashboard/admin/users', icon: Icons.users, label: 'Gestion des Utilisateurs' },
+    { href: '/dashboard/admin/agences', icon: Icons.agency, label: 'Gestion des Agences' },
     { href: '/dashboard/admin/settings', icon: Icons.settings, label: 'Paramètres' },
   ];
 

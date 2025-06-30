@@ -17,6 +17,18 @@ enum Role {
   ADMIN
 }
 
+// --- NOUVEAU MODÈLE POUR LES AGENCES ---
+model Agence {
+  id      String  @id @default(cuid())
+  nom     String  @unique
+  tel     String?
+  email   String?
+  adresse String?
+
+  // Relation : Une agence peut avoir plusieurs utilisateurs
+  users   User[]
+}
+
 // --- MODÈLES POUR L'AUTHENTIFICATION (Next-Auth.js) ---
 
 // Modèle pour les utilisateurs de l'application
@@ -26,12 +38,17 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // Le mot de passe est stocké hashé
+  password      String? // Le mot de passe est stocké hashé
   role          Role      @default(USER)
   isActive      Boolean   @default(true)
 
+  // --- NOUVELLE RELATION ---
+  // Un utilisateur peut être assigné à une agence (optionnel)
+  agenceId      String?
+  agence        Agence?   @relation(fields: [agenceId], references: [id])
+
   // Relation: Un utilisateur peut créer plusieurs attestations
-  attestations AttestationAuto[] @relation("CreatedBy")
+  attestations  AttestationAuto[] @relation("CreatedBy")
 
   accounts      Account[]
   sessions      Session[]
