@@ -61,7 +61,7 @@ export default function UserForm({ initialData, onSuccess, onCancel }: UserFormP
         name: initialData.name || '',
         email: initialData.email || '',
         role: initialData.role || 'USER',
-        agenceId: initialData.agence?.id || undefined
+        agenceId: initialData.agenceId || undefined
       });
     }
   }, [initialData]);
