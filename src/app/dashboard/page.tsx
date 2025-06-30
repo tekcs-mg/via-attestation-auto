@@ -22,8 +22,12 @@ type Attestation = {
   marque: string;
   nombrePlaces: number;
   dateEdition: string;
-  agent: string;
-  telephoneAgent: string;
+  agence: {
+    nom: string;
+    tel?: string;
+    email?: string;
+    code?: string;
+  };
   creator: { // Relation imbriquée
     name: string | null;
   };

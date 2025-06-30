@@ -20,6 +20,7 @@ enum Role {
 // --- NOUVEAU MODÈLE POUR LES AGENCES ---
 model Agence {
   id      String  @id @default(cuid())
+  code    String?  
   nom     String  @unique
   tel     String?
   email   String?
@@ -27,6 +28,8 @@ model Agence {
 
   // Relation : Une agence peut avoir plusieurs utilisateurs
   users   User[]
+  attestations AttestationAuto[] // Relation: Une agence peut avoir plusieurs attestations
+
 }
 
 // --- MODÈLES POUR L'AUTHENTIFICATION (Next-Auth.js) ---
@@ -97,8 +100,6 @@ model AttestationAuto {
   id              String    @id @default(cuid())
   numFeuillet     Int       @unique
   numeroPolice    String
-  agent           String    @default("VIA Assurance Madagascar")
-  telephoneAgent  String    @default("+261 38 00 842 00")
   souscripteur    String
   adresse         String
   dateEffet       DateTime
@@ -112,4 +113,7 @@ model AttestationAuto {
   updatedAt       DateTime  @updatedAt
   creatorId       String
   creator         User      @relation("CreatedBy", fields: [creatorId], references: [id])
+  // --- NOUVELLE RELATION REQUISE ---
+  agenceId        String
+  agence          Agence    @relation(fields: [agenceId], references: [id])
 }

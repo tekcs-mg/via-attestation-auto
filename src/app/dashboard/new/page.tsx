@@ -1,13 +1,14 @@
 // Fichier: src/app/dashboard/new/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import AttestationPreview from '@/components/AttestationPreview';
 
-// Type pour les données de l'attestation
+// Types pour les données
+type Agence = { id: string; nom: string; tel?: string; };
 type AttestationData = {
-  id: string; // Sera vide au début
+  agenceId?: string;
   numFeuillet: number | string;
   numeroPolice: string;
   souscripteur: string;
@@ -18,19 +19,14 @@ type AttestationData = {
   usage: string;
   marque: string;
   nombrePlaces: number | string;
-  dateEdition: string;
-  agent: string;
-  telephoneAgent: string;
 };
 
 export default function NewAttestationPage() {
   const router = useRouter();
-  const defaultAgence = process.env.DEFAULT_AGENCE;
-  const defaultAgenceTel = process.env.DEFAULT_AGENCE_TEL;
+  const [agences, setAgences] = useState<Agence[]>([]);
   
-  // État pour les données du formulaire, initialisé avec des valeurs par défaut pour l'aperçu
   const [formData, setFormData] = useState<AttestationData>({
-    id: '',
+    agenceId: undefined,
     numFeuillet: '',
     numeroPolice: '',
     souscripteur: '',
@@ -40,17 +36,29 @@ export default function NewAttestationPage() {
     adresse: '',
     usage: '',
     marque: '',
-    nombrePlaces: 0,
-    dateEdition: new Date().toISOString(),
-    agent: defaultAgence || '',
-    telephoneAgent: defaultAgenceTel || '',
+    nombrePlaces: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Gère les changements dans les champs du formulaire
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch la liste des agences au montage
+  useEffect(() => {
+    const fetchAgences = async () => {
+      try {
+        const res = await fetch('/api/admin/agences');
+        const data = await res.json();
+        setAgences(data);
+        // Pré-sélectionner la première agence de la liste si elle existe
+        if (data.length > 0) {
+          setFormData(prev => ({ ...prev, agenceId: data[0].id }));
+        }
+      } catch (e) { console.error("Impossible de charger les agences"); }
+    };
+    fetchAgences();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -63,13 +71,18 @@ export default function NewAttestationPage() {
     setIsLoading(true);
     setError(null);
 
+    if (!formData.agenceId) {
+        setError("Veuillez sélectionner une agence.");
+        setIsLoading(false);
+        return;
+    }
+
     try {
       const response = await fetch('/api/attestations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             ...formData,
-            id: formData.id !== '' ? formData.id : undefined,
             numFeuillet: Number(formData.numFeuillet),
             nombrePlaces: Number(formData.nombrePlaces)
         }),
@@ -80,8 +93,8 @@ export default function NewAttestationPage() {
         throw new Error(errorData.error || "Une erreur s'est produite.");
       }
       
-      router.push('/dashboard'); // Redirige vers le tableau de bord après succès
-      router.refresh(); // Force le rafraîchissement des données du tableau de bord
+      router.push('/dashboard');
+      router.refresh();
     
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur inconnue est survenue.");
@@ -90,11 +103,19 @@ export default function NewAttestationPage() {
     }
   };
   
-  const previewData = {
-    ...formData,
-    numFeuillet: Number(formData.numFeuillet) || 0,
-    nombrePlaces: Number(formData.nombrePlaces) || 0,
-  };
+  // Prépare les données pour l'aperçu en trouvant l'objet agence complet
+  const previewData = useMemo(() => {
+    const selectedAgence = agences.find(a => a.id === formData.agenceId);
+    return {
+      id: '',
+      dateEdition: new Date().toISOString(),
+      ...formData,
+      numFeuillet: Number(formData.numFeuillet) || 0,
+      nombrePlaces: Number(formData.nombrePlaces) || 0,
+      agent: selectedAgence?.nom || 'AGENCE',
+      telephoneAgent: selectedAgence?.tel || 'TELEPHONE',
+    };
+  }, [formData, agences]);
 
   return (
     <div className="fixed inset-0 bg-white flex h-screen">
@@ -106,6 +127,15 @@ export default function NewAttestationPage() {
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
         
         <div className="space-y-4">
+          <div>
+            <label htmlFor="agenceId" className="block text-sm font-medium text-gray-700">Agence</label>
+            <select name="agenceId" id="agenceId" value={formData.agenceId || ''} onChange={handleChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black">
+              <option value="" disabled>-- Sélectionner une agence --</option>
+              {agences.map(agence => (
+                <option key={agence.id} value={agence.id}>{agence.nom}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label htmlFor="numFeuillet" className="block text-sm font-medium text-gray-700">Numéro de Feuillet</label>
             <input type="number" name="numFeuillet" value={formData.numFeuillet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
@@ -149,17 +179,12 @@ export default function NewAttestationPage() {
         </div>
       </div>
 
-      {/* --- SECTION MISE À JOUR --- */}
-      {/* Colonne de Droite : Aperçu et Actions */}
       <div className="hidden md:flex w-2/3 h-full flex-col bg-gray-100 p-4">
-        {/* Aperçu */}
         <div className="flex-grow flex items-center justify-center overflow-auto">
             <div className="transform scale-90 origin-center">
                 <AttestationPreview attestation={previewData} />
             </div>
         </div>
-        
-        {/* Actions */}
         <div className="flex-shrink-0 flex justify-end gap-2 pt-4">
             <button 
               onClick={() => router.back()}

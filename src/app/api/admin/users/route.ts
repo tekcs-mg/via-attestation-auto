@@ -40,10 +40,10 @@ export async function GET(request: Request) {
       const [users, total] = await prisma.$transaction([
         prisma.user.findMany({
           where: whereClause,
-          select: { id: true, name: true, email: true, role: true },
           skip: skip,
           take: limit,
           orderBy: { [sortBy]: sortOrder },
+          include: {agence: {select: {nom: true}}} // Inclure l'agence}
         }),
         prisma.user.count({ where: whereClause }),
       ]);
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
     }
     
     try {
-      const { name, email, password, role } = await request.json();
+      const { name, email, password, role, agenceId } = await request.json();
   
       if (!name || !email || !password || !role) {
         return NextResponse.json({ error: "Données manquantes." }, { status: 400 });
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
       const hashedPassword = await bcrypt.hash(password, 10);
   
       const newUser = await prisma.user.create({
-        data: { name, email, password: hashedPassword, role },
+        data: { name, email, password: hashedPassword, role, agenceId },
       });
   
       // On ne retourne pas le mot de passe hashé

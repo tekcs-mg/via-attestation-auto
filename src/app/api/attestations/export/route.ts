@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
         const attestations = await prisma.attestationAuto.findMany({
             where: whereClause,
-            include: { creator: { select: { name: true } } },
+            include: { creator: { select: { name: true } }, agence : { select: { nom: true, code: true, tel: true, email: true } }},
             orderBy: { numFeuillet: 'desc' },
         });
 
@@ -73,7 +73,9 @@ export async function GET(request: NextRequest) {
             "Usage": att.usage,
             "Nombre de Places": att.nombrePlaces,
             "Adresse": att.adresse,
-            // "Créé par": att.creator.name,
+            "Créé par": att.creator.name,
+            "Agence": att.agence.nom,
+            "Tel": att.agence.tel,
             "Date de Création": att.createdAt.toLocaleDateString('fr-FR'),
         }));
 

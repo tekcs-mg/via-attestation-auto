@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 
 type Agence = {
   id: string;
+  code?: string;
   nom: string;
   tel?: string;
   email?: string;
@@ -97,6 +98,7 @@ export default function AgenceManagementPage() {
             <thead className="border-b">
                 <tr>
                     <th className="px-4 py-3 text-left font-semibold text-black">Nom</th>
+                    <th className="px-4 py-3 text-left font-semibold text-black">Code</th>
                     <th className="px-4 py-3 text-left font-semibold text-black">Email</th>
                     <th className="px-4 py-3 text-left font-semibold text-black">Téléphone</th>
                     <th className="px-4 py-3 text-left font-semibold text-black">Actions</th>
@@ -106,6 +108,7 @@ export default function AgenceManagementPage() {
                 {agences.map((agence) => (
                     <tr key={agence.id} className="border-b hover:bg-gray-50">
                         <td className="px-4 py-3 text-black">{agence.nom}</td>
+                        <td className="px-4 py-3 text-black">{agence.code || 'N/A'}</td>
                         <td className="px-4 py-3 text-black">{agence.email || 'N/A'}</td>
                         <td className="px-4 py-3 text-black">{agence.tel || 'N/A'}</td>
                         <td className="px-4 py-3">

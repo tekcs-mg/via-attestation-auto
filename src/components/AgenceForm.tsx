@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 type Agence = {
   id?: string;
+  code?: string;
   nom: string;
   tel?: string;
   email?: string;
@@ -78,6 +79,10 @@ export default function AgenceForm({ initialData, onSuccess, onCancel }: AgenceF
       <div>
         <label htmlFor="nom" className="block text-sm font-medium text-gray-700">Nom de l'agence</label>
         <input type="text" name="nom" id="nom" required value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
+      </div>
+      <div>
+        <label htmlFor="code" className="block text-sm font-medium text-gray-700">Code</label>
+        <input type="code" name="code" id="code" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
       </div>
       <div>
         <label htmlFor="tel" className="block text-sm font-medium text-gray-700">Téléphone</label>

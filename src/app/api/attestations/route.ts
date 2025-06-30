@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        include: { creator: { select: { name: true, email: true } } },
+        include: { creator: { select: { name: true, email: true } }, agence: { select: { nom: true, email: true, tel: true, code: true } } },
     });
     
     return NextResponse.json({ 
@@ -81,48 +81,38 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    console.log("--- Données reçues par l'API (body) ---");
-    console.log(body);
 
+    // On déstructure pour ne prendre que les champs attendus
     const {
+        agenceId, // Le nouvel identifiant de l'agence
         numFeuillet, numeroPolice, souscripteur, immatriculation, dateEffet,
-        dateEcheance, adresse, usage, marque, nombrePlaces, agent, telephoneAgent
+        dateEcheance, adresse, usage, marque, nombrePlaces
     } = body;
-    
-    if (!numFeuillet || !numeroPolice || !souscripteur) {
-        return NextResponse.json({ error: "Les champs N° Feuillet, N° Police et Souscripteur sont requis." }, { status: 400 });
+
+    // Validation des champs requis
+    if (!agenceId || !numFeuillet || !numeroPolice || !souscripteur) {
+        return NextResponse.json({ error: "Les champs Agence, N° Feuillet, N° Police et Souscripteur sont requis." }, { status: 400 });
     }
 
     const dataForPrisma = {
-      numFeuillet: Number(numFeuillet), numeroPolice, souscripteur, immatriculation,
-      dateEffet: new Date(dateEffet), dateEcheance: new Date(dateEcheance),
-      adresse, usage, marque, nombrePlaces: Number(nombrePlaces),
-      agent, telephoneAgent,
+      agenceId,
+      numFeuillet: Number(numFeuillet),
+      numeroPolice, souscripteur, immatriculation,
+      dateEffet: new Date(dateEffet),
+      dateEcheance: new Date(dateEcheance),
+      adresse, usage, marque,
+      nombrePlaces: Number(nombrePlaces),
       creatorId: session.user.id,
     };
 
-    console.log("--- Données préparées pour Prisma ---");
-    console.log(dataForPrisma);
-
-    console.log("Tentative de création dans la base de données...");
     const newAttestation = await prisma.attestationAuto.create({ data: dataForPrisma });
-    console.log("✅ Création réussie !");
-
     return NextResponse.json(newAttestation, { status: 201 });
 
   } catch (error) {
-    console.error("❌ Erreur dans POST /api/attestations:", error); // Log détaillé de l'erreur serveur
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-         return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
-      }
-      return NextResponse.json({ error: `Erreur de base de données connue: ${error.message}` }, { status: 400 });
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+       return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
     }
-    if (error instanceof Error && error.name === 'PrismaClientValidationError') {
-       return NextResponse.json({ error: "Erreur de validation des données.", details: error.message }, { status: 400 });
-    }
-    
-    return NextResponse.json({ error: "Erreur interne du serveur lors de la création." }, { status: 500 });
+    console.error("Erreur dans POST /api/attestations:", error);
+    return NextResponse.json({ error: "Erreur lors de la création de l'attestation" }, { status: 500 });
   }
 }

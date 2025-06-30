@@ -18,8 +18,12 @@ type Attestation = {
   marque: string;
   nombrePlaces: number;
   dateEdition: string;
-  agent: string;
-  telephoneAgent: string;
+  agence: {
+    nom: string;
+    code?: string;
+    tel?: string;
+    email?: string;
+  }
 };
 
 // Composant utilitaire pour les labels bilingues pour éviter la répétition
@@ -41,7 +45,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       <div className="w-[21.15%] border-r border-dashed border-black px-2 py-1 flex flex-col">
         <div className="font-bold text-blue-900 text-[11px]">VIA Assurance Madagascar</div>
         <div className="text-[9px] mt-2 text-blue-900"><div className="font-bold">Masoivoho</div><div className="font-normal">Agence</div></div>
-        <div className="font-bold text-[9px] text-black">{attestation.agent}</div>
+        <div className="font-bold text-[9px] text-black">{attestation?.agence?.nom || ''}</div>
 
         <div className="mt-3 space-y-2">
             <div className="flex justify-between items-center">
@@ -98,8 +102,8 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
                           <div className="font-bold text-black flex-grow text-center border-b-2 border-sky-200 pb-1">{attestation.numeroPolice}</div>
                       </div>
                       <div className="text-right flex-shrink-0 pl-4">
-                          <div><span className="font-normal text-blue-900">Agent : </span><span className="font-bold text-black">{attestation.agent}</span></div>
-                          <div><span className="font-normal text-blue-900">Tél : </span><span className="font-bold text-black">{attestation.telephoneAgent}</span></div>
+                          <div><span className="font-normal text-blue-900">Agent : </span><span className="font-bold text-black">{attestation?.agence?.nom || ''}</span></div>
+                          <div><span className="font-normal text-blue-900">Tél : </span><span className="font-bold text-black">{attestation?.agence?.tel || ''}</span></div>
                       </div>
                   </div>
                   <div className="flex items-center gap-2">

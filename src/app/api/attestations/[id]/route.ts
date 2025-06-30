@@ -39,9 +39,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     try {
         const { id } = params;
         const body = await request.json();
-
-        // On s'assure de ne pas modifier le numFeuillet lors d'une mise à jour
-        const { numFeuillet, ...dataToUpdate } = body;
+        const { numFeuillet, ...dataToUpdate } = body; // On ne peut pas modifier le numFeuillet
 
         const dataForPrisma = {
             ...dataToUpdate,
@@ -56,9 +54,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
         return NextResponse.json(updatedAttestation);
     } catch (error) {
-        if (error instanceof Error && error.name === 'PrismaClientValidationError') {
-            return NextResponse.json({ error: "Erreur de validation des données.", details: error.message }, { status: 400 });
-        }
+        console.error("Erreur dans PUT /api/attestations/[id]:", error);
         return NextResponse.json({ error: "Erreur lors de la mise à jour de l'attestation" }, { status: 500 });
     }
 }

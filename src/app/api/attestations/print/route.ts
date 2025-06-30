@@ -13,7 +13,7 @@ import QRCode from 'qrcode';
 const prisma = new PrismaClient();
 
 // --- NOUVELLE FONCTION DE GÉNÉRATION HTML HAUTE FIDÉLITÉ ---
-async function generateAttestationHTML(attestation: AttestationAuto): Promise<string> {
+async function generateAttestationHTML(attestation : AttestationAuto): Promise<string> {
     const verificationUrl = `${process.env.NEXT_PUBLIC_URL}/verify/${attestation.id}`;
     const logoUrl = `${process.env.NEXT_PUBLIC_URL}/logo/Logo_VIA.png`;
     const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, { width: 100 });
@@ -31,7 +31,7 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
             <div style="width: 5.5cm; border-right: 1px dashed black; padding: 8px; display: flex; flex-direction: column;">
                 <div style="font-weight: bold; color: #1e3a8a; font-size: 11px;">VIA Assurance Madagascar</div>
                 <div style="font-size: 9px; margin-top: 8px; color: #1e3a8a;"><div style="font-weight: bold;">Masoivoho</div><div style="font-weight: normal;">Agence</div></div>
-                <div style="font-weight: bold; font-size: 9px; color: black;">${attestation.agent}</div>
+                <div style="font-weight: bold; font-size: 9px; color: black;">${attestation.agenceId}</div>
                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fifanekena N°", "Police N°")} <div style="font-weight: bold; color: black;">${attestation.numeroPolice}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fiara N°", "Véhicule N°")} <div style="font-weight: bold; color: black;">${attestation.immatriculation}</div></div>
@@ -63,8 +63,8 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
                             <div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.numeroPolice}</div>
                         </div>
                         <div style="text-align: right; flex-shrink: 0; padding-left: 16px;">
-                            <div><span style="font-weight: normal; color: #1e3a8a;">Agence : </span><span style="font-weight: bold; color: black;">${attestation.agent}</span></div>
-                            <div><span style="font-weight: normal; color: #1e3a8a;">Tél : </span><span style="font-weight: bold; color: black;">${attestation.telephoneAgent}</span></div>
+                            <div><span style="font-weight: normal; color: #1e3a8a;">Agence : </span><span style="font-weight: bold; color: black;">${attestation.agenceId}</span></div>
+                            <div><span style="font-weight: normal; color: #1e3a8a;">Tél : </span><span style="font-weight: bold; color: black;">${attestation.agenceId}</span></div>
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">${bilingualLabel("Mpaka fiantohana", "Souscripteur (Nom et Prénoms)")}<div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.souscripteur}</div></div>
@@ -159,7 +159,8 @@ export async function GET(request: NextRequest) {
         const ids = idsParam.split(',');
 
         const attestations = await prisma.attestationAuto.findMany({
-            where: { id: { in: ids } }
+            where: { id: { in: ids } },
+            include: {agence: { select: { nom: true, email: true, tel: true, code: true } }}
         });
 
         if (attestations.length === 0) {
