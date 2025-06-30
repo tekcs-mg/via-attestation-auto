@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
         const attestations = await prisma.attestationAuto.findMany({
             where: whereClause,
-            // include: { creator: { select: { name: true } } },
+            include: { creator: { select: { name: true } } },
             orderBy: { numFeuillet: 'desc' },
         });
 

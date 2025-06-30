@@ -143,7 +143,7 @@ const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <div className="flex justify-end gap-4 pt-4">
                     <button onClick={onClose} className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Annuler</button>
-                    <button onClick={handleImport} disabled={!file || isImporting} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">
+                    <button onClick={handleImport} disabled={!file || isImporting} className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">
                         {isImporting ? "Importation..." : "Importer"}
                     </button>
                 </div>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
     return (
       <div className="p-8">
         <div className="mb-6">
-            <h1 className="text-3xl font-bold text-black">Tableau de Bord</h1>
+            <h1 className="text-3xl font-bold text-[#1f308c]">Tableau de Bord</h1>
         </div>
 
         <div className="flex justify-between items-center mb-6 gap-4">
@@ -320,7 +320,7 @@ export default function DashboardPage() {
                 <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black"> Tout Exporter </button> 
             )}
             <button onClick={() => setIsImportModalOpen(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Importer</button>
-            <Link href="/dashboard/new"><button className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">Créer</button></Link>
+            <Link href="/dashboard/new"><button className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Créer</button></Link>
           </div>
         </div>
         

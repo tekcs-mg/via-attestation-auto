@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        // include: { creator: { select: { name: true, email: true } } },
+        include: { creator: { select: { name: true, email: true } } },
     });
     
     return NextResponse.json({ 

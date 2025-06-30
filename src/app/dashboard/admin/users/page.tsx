@@ -138,7 +138,7 @@ export default function UserManagementPage() {
                 <option value="ADMIN">Administrateur</option>
                 <option value="USER">Utilisateur</option>
             </select>
-            <button onClick={handleCreateClick} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">
+            <button onClick={handleCreateClick} className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">
               Créer un Utilisateur
             </button>
         </div>

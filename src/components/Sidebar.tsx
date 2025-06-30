@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { Icons } from './Icons';
+import Image from 'next/image';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -38,7 +39,7 @@ export default function Sidebar() {
     <aside className={`relative bg-white border-r transition-all duration-300 ${isExpanded ? 'w-64' : 'w-20'}`}>
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-center p-4 border-b">
-          <span className="text-2xl font-bold text-blue-800">{isExpanded ? 'VIA' : 'V'}</span>
+          <span className="text-2xl font-bold text-blue-800">{isExpanded ? <Image src={'/logo/Logo_VIA.png'} alt='logo VIA' height={100} width={100}/> : 'V'}</span>
         </div>
         <nav className="flex-grow p-4 space-y-2">
           {navItems.map(item => <NavLink key={item.href} {...item} />)}

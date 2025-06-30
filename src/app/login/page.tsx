@@ -32,7 +32,7 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form onSubmit={handleSubmit} className="p-8 bg-white rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Connexion</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-black">Connexion</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <div className="mb-4">
           <label htmlFor="email" className="block text-gray-700">Email</label>
@@ -56,7 +56,7 @@ export default function LoginPage() {
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
-        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+        <button type="submit" className="w-full bg-[#1f308c] text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
           Se connecter
         </button>
       </form>

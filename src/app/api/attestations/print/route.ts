@@ -14,8 +14,9 @@ const prisma = new PrismaClient();
 
 // --- NOUVELLE FONCTION DE GÉNÉRATION HTML HAUTE FIDÉLITÉ ---
 async function generateAttestationHTML(attestation: AttestationAuto): Promise<string> {
-    const verificationUrl = `https://via-assurance.mg/verify/${attestation.id}`;
-    const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, { width: 88 });
+    const verificationUrl = `${process.env.NEXT_PUBLIC_URL}/verify/${attestation.id}`;
+    const logoUrl = `${process.env.NEXT_PUBLIC_URL}/logo/Logo_VIA.png`;
+    const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, { width: 100 });
 
     const bilingualLabel = (malagasy: string, francais: string) => `
         <div style="font-size: 9px; color: #1e3a8a; line-height: 1.2; flex-shrink: 0;">
@@ -29,7 +30,7 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
             <!-- Colonne gauche : Talon -->
             <div style="width: 5.5cm; border-right: 1px dashed black; padding: 8px; display: flex; flex-direction: column;">
                 <div style="font-weight: bold; color: #1e3a8a; font-size: 11px;">VIA Assurance Madagascar</div>
-                <div style="font-size: 9px; margin-top: 8px; color: #1e3a8a;"><div style="font-weight: bold;">Masovohatra</div><div style="font-weight: normal;">Agence</div></div>
+                <div style="font-size: 9px; margin-top: 8px; color: #1e3a8a;"><div style="font-weight: bold;">Masoivoho</div><div style="font-weight: normal;">Agence</div></div>
                 <div style="font-weight: bold; font-size: 9px; color: black;">${attestation.agent}</div>
                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fifanekena N°", "Police N°")} <div style="font-weight: bold; color: black;">${attestation.numeroPolice}</div></div>
@@ -46,20 +47,23 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
 
             <!-- Colonne centrale : Attestation -->
             <div style="width: 15cm; padding: 4px 8px; display: flex; flex-direction: column;">
-                <div style="text-align: center;">
-                    <div style="font-size: 32px; font-weight: bold; color: #1d4ed8; line-height: 1;">VIA</div>
-                    <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">FANAMARINAM-PIANTOHANA</div>
-                    <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">ATTESTATION D'ASSURANCE</div>
-                    <div style="font-size: 9px; color: #1e3a8a;">(Loi N°2020-005 du 02 Juin 2020)</div>
+                <div style="display: flex; width: 100%; align-items: center;">
+                    <div style="width: 25%;"><img src='${logoUrl}' alt="logo" style="height: 40px; width: 80px; object-fit: contain;" /></div>
+                    <div style="width: 50%; text-align: center;">
+                        <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">FANAMARINAM-PIANTOHANA</div>
+                        <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">ATTESTATION D'ASSURANCE</div>
+                        <div style="font-size: 9px; color: #1e3a8a;">(Loi N°2020-005 du 02 Juin 2020)</div>
+                    </div>
+                    <div style="width: 25%;"></div>
                 </div>
-                <div style="border: 1px solid black; padding: 8px; margin-top: 4px; font-size: 9px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="border: 1px solid black; padding: 8px; margin-top: 20px; margin-bottom: 20px; font-size: 9px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
                             ${bilingualLabel("Nomeran'ny fifanekena", "N° de la police")}
                             <div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.numeroPolice}</div>
                         </div>
                         <div style="text-align: right; flex-shrink: 0; padding-left: 16px;">
-                            <div><span style="font-weight: normal; color: #1e3a8a;">Agent : </span><span style="font-weight: bold; color: black;">${attestation.agent}</span></div>
+                            <div><span style="font-weight: normal; color: #1e3a8a;">Agence : </span><span style="font-weight: bold; color: black;">${attestation.agent}</span></div>
                             <div><span style="font-weight: normal; color: #1e3a8a;">Tél : </span><span style="font-weight: bold; color: black;">${attestation.telephoneAgent}</span></div>
                         </div>
                     </div>
@@ -67,7 +71,6 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
                     <div style="display: flex; align-items: center; gap: 8px;">${bilingualLabel("Fonenana", "Adresse")}<div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.adresse}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 4px;">
                         <div style="display: flex; align-items: flex-end; gap: 8px; flex-grow: 1;">${bilingualLabel("Manan-kery", "Valable du")}<div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${format(new Date(attestation.dateEffet), 'dd MMMM yyyy', { locale: fr })}</div></div>
-                        <div style="font-weight: bold; color: black; font-size: 14px; padding: 0 8px 4px;">0:00</div>
                         <div style="display: flex; align-items: flex-end; gap: 8px; flex-grow: 1;">${bilingualLabel("ka hatramin'ny", "au")}<div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${format(new Date(attestation.dateEcheance), 'dd MMMM yyyy', { locale: fr })}</div></div>
                     </div>
                 </div>
@@ -78,21 +81,22 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
                             <thead style="background-color: #f3f4f6;"><tr>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Karazany", "Genre")}</th>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Anaran'ny karazany", "Marque")}</th>
-                                <th style="border: 1px solid black; padding: 4px;"><div style="font-size: 9px; color: #1e3a8a; line-height: 1.2;"><div style="font-weight: bold;">Nomerao nanoratana azy...</div><div style="font-weight: normal;">N° d'immatriculation...</div></div></th>
+                                <th style="border: 1px solid black; padding: 4px;"><div style="font-size: 9px; color: #1e3a8a; line-height: 1.2;"><div style="font-weight: bold;">Nomerao nanoratana azy na ny nomeraon'ny motera</div><div style="font-weight: normal;">N° d'immatriculation ou à défaut N° du moteur</div></div></th>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Isan-toerana", "Nombre de places")}</th>
                             </tr></thead>
                             <tbody><tr>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black;">${attestation.usage}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black;">${attestation.marque}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black;">${attestation.immatriculation}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black;">${attestation.nombrePlaces}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.usage}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.marque}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.immatriculation}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.nombrePlaces}</td>
                             </tr></tbody>
                         </table>
                     </div>
                     <div style="width: 30%; padding-left: 12px; display: flex; flex-direction: column; text-align: left;">
-                        <div style="flex-grow: 1;"></div>
-                        <div style="margin-bottom: 8px; color: #1e3a8a; text-align: left;"><div style="font-weight: bold;">Sonian'ny mpiantoka sy fitomboka</div><div style="font-weight: normal;">Pour la société, cachet et signature</div></div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">${bilingualLabel("Nomena tamin'ny", "Délivrée le")} <div style="font-weight: bold; color: black;">${format(new Date(attestation.dateEdition), 'dd/MM/yyyy')}</div></div>
+                        <br/>
+                        <div style="margin-bottom: 8px; color: #1e3a8a; text-align: left;"><div style="font-weight: bold;">Sonian'ny mpiantoka sy fitomboka</div><div style="font-weight: normal;">Pour la société, cachet et signature</div></div>
+                        <div style="flex-grow: 1;"></div>
                     </div>
                 </div>
             </div>
@@ -116,7 +120,7 @@ async function generateAttestationHTML(attestation: AttestationAuto): Promise<st
                 </div>
                 <div style="height: 50%; padding-top: 8px; border-top: 1px dashed black; display: flex; align-items: center; justify-content: center;">
                     <div style="width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; padding: 4px; background-color: white; border: 1px solid black;">
-                        <img src="${qrCodeDataUrl}" alt="QR Code" style="width: 88px; height: 88px;" />
+                        <img src="${qrCodeDataUrl}" alt="QR Code" style="width: 150px; height: 150px;" />
                     </div>
                 </div>
             </div>

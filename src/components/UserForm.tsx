@@ -93,7 +93,7 @@ export default function UserForm({ initialData, onSuccess, onCancel }: UserFormP
 
       <div className="flex justify-end pt-4 gap-2">
         <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Annuler</button>
-        <button type="submit" disabled={isLoading} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">{isLoading ? 'Enregistrement...' : 'Enregistrer'}</button>
+        <button type="submit" disabled={isLoading} className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg">{isLoading ? 'Enregistrement...' : 'Enregistrer'}</button>
       </div>
     </form>
   );

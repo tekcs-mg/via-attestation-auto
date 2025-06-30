@@ -3,6 +3,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import QRCodeGenerator from './QRCodeGenerator'; // Importer le nouveau composant
+import Image from 'next/image';
 
 type Attestation = {
   id: string;
@@ -39,7 +40,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       {/* Colonne gauche : Talon */}
       <div className="w-[21.15%] border-r border-dashed border-black px-2 py-1 flex flex-col">
         <div className="font-bold text-blue-900 text-[11px]">VIA Assurance Madagascar</div>
-        <div className="text-[9px] mt-2 text-blue-900"><div className="font-bold">Masovohatra</div><div className="font-normal">Agence</div></div>
+        <div className="text-[9px] mt-2 text-blue-900"><div className="font-bold">Masoivoho</div><div className="font-normal">Agence</div></div>
         <div className="font-bold text-[9px] text-black">{attestation.agent}</div>
 
         <div className="mt-3 space-y-2">
@@ -72,15 +73,25 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne centrale : Attestation */}
-          <div className="w-[57,692%] px-2 py-1 flex flex-col">
-              <div className="text-center">
-                  <div className="text-[32px] font-bold text-blue-800 leading-none">VIA</div>
-                  <div className="font-bold text-[11px] text-blue-900">FANAMARINAM-PIANTOHANA</div>
-                  <div className="font-bold text-[11px] text-blue-900">ATTESTATION D'ASSURANCE</div>
-                  <div className="text-[9px] text-blue-900">(Loi N°2020-005 du 02 Juin 2020)</div>
-              </div>
+      <div className="w-[57,692%] px-2 py-1 flex flex-col">
+        <div className="flex w-full items-center">
+          {/* Colonne de gauche pour le logo (prend 1/4 de la largeur) */}
+          <div className="w-1/4">
+            <Image src={'/logo/Logo_VIA.png'} alt='logo VIA' height={100} width={100} />
+          </div>
 
-              <div className="border border-black p-2 mt-1 text-[9px] space-y-2">
+          {/* Colonne centrale pour le texte (prend la moitié de la largeur) */}
+          <div className="w-1/2 text-center">
+            <div className="font-bold text-[11px] text-blue-900">FANAMARINAM-PIANTOHANA</div>
+            <div className="font-bold text-[11px] text-blue-900">ATTESTATION D'ASSURANCE</div>
+            <div className="text-[9px] text-blue-900">(Loi N°2020-005 du 02 Juin 2020)</div>
+          </div>
+
+          {/* Colonne de droite, invisible, pour équilibrer (prend 1/4 de la largeur) */}
+          <div className="w-1/4"></div>
+        </div>
+
+              <div className="border border-black p-2 mt-5 mb-5 text-[9px] space-y-2">
                   <div className="flex justify-between">
                       <div className="flex items-center gap-2 w-full">
                           <BilingualLabel malagasy="Nomeran'ny fifanekena" francais="N° de la police" />

@@ -25,6 +25,8 @@ type AttestationData = {
 
 export default function NewAttestationPage() {
   const router = useRouter();
+  const defaultAgence = process.env.DEFAULT_AGENCE;
+  const defaultAgenceTel = process.env.DEFAULT_AGENCE_TEL;
   
   // État pour les données du formulaire, initialisé avec des valeurs par défaut pour l'aperçu
   const [formData, setFormData] = useState<AttestationData>({
@@ -40,8 +42,8 @@ export default function NewAttestationPage() {
     marque: '',
     nombrePlaces: 0,
     dateEdition: new Date().toISOString(),
-    agent: '',
-    telephoneAgent: '',
+    agent: defaultAgence || '',
+    telephoneAgent: defaultAgenceTel || '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -106,43 +108,43 @@ export default function NewAttestationPage() {
         <div className="space-y-4">
           <div>
             <label htmlFor="numFeuillet" className="block text-sm font-medium text-gray-700">Numéro de Feuillet</label>
-            <input type="number" name="numFeuillet" value={formData.numFeuillet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="number" name="numFeuillet" value={formData.numFeuillet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="numeroPolice" className="block text-sm font-medium text-gray-700">Numéro de Police</label>
-            <input type="text" name="numeroPolice" value={formData.numeroPolice} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="numeroPolice" value={formData.numeroPolice} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="souscripteur" className="block text-sm font-medium text-gray-700">Souscripteur</label>
-            <input type="text" name="souscripteur" value={formData.souscripteur} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="souscripteur" value={formData.souscripteur} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="adresse" className="block text-sm font-medium text-gray-700">Adresse</label>
-            <input type="text" name="adresse" value={formData.adresse} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="adresse" value={formData.adresse} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="dateEffet" className="block text-sm font-medium text-gray-700">Date d'Effet</label>
-            <input type="date" name="dateEffet" value={formData.dateEffet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="date" name="dateEffet" value={formData.dateEffet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="dateEcheance" className="block text-sm font-medium text-gray-700">Date d'Echéance</label>
-            <input type="date" name="dateEcheance" value={formData.dateEcheance} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="date" name="dateEcheance" value={formData.dateEcheance} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="immatriculation" className="block text-sm font-medium text-gray-700">Immatriculation</label>
-            <input type="text" name="immatriculation" value={formData.immatriculation} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="immatriculation" value={formData.immatriculation} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="marque" className="block text-sm font-medium text-gray-700">Marque</label>
-            <input type="text" name="marque" value={formData.marque} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="marque" value={formData.marque} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="usage" className="block text-sm font-medium text-gray-700">Usage (ex: PA)</label>
-            <input type="text" name="usage" value={formData.usage} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="text" name="usage" value={formData.usage} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
           <div>
             <label htmlFor="nombrePlaces" className="block text-sm font-medium text-gray-700">Nombre de Places</label>
-            <input type="number" name="nombrePlaces" value={formData.nombrePlaces} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black" />
+            <input type="number" name="nombrePlaces" value={formData.nombrePlaces} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
           </div>
         </div>
       </div>
@@ -168,7 +170,7 @@ export default function NewAttestationPage() {
             <button 
               onClick={handleSubmit} 
               disabled={isLoading} 
-              className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+              className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
             >
               {isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
             </button>
