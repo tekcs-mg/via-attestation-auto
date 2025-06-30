@@ -7,7 +7,22 @@ import { authOptions } from "../../auth/[...nextauth]/route";import Papa from 'p
 
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest) {
+// --- NOUVELLE FONCTION UTILITAIRE POUR PARSER LES DATES ---
+// Gère le format JJ/MM/AAAA en le convertissant en un format compréhensible par new Date()
+function parseDate(dateStr: string): Date {
+    if (!dateStr || typeof dateStr !== 'string') return new Date('Invalid Date');
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        // parts[2] = Année, parts[1] = Mois, parts[0] = Jour
+        // Le mois en JS est 0-indexé (0=Jan, 11=Dec), d'où parts[1] - 1
+        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    }
+    // Si le format n'est pas JJ/MM/AAAA, on essaie de le parser directement
+    return new Date(dateStr);
+}
+
+
+export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.id) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -32,21 +47,28 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Erreur lors de l'analyse du fichier CSV.", details: parseResult.errors }, { status: 400 });
         }
 
-        // --- NOUVELLE LOGIQUE ---
-        // 1. Extraire tous les numéros de feuillet du CSV
         const allNumFeuillets = parseResult.data.map((row: any) => Number(row["N° Feuillet"])).filter(n => !isNaN(n));
         
         const attestationsToCreate = parseResult.data.map((row: any) => {
             if (!row["N° Feuillet"] || !row["N° Police"] || !row["Souscripteur"]) {
                 throw new Error(`Ligne invalide : ${JSON.stringify(row)}. Champs requis manquants.`);
             }
+            
+            // --- CORRECTION : Utilisation de la nouvelle fonction de parsing ---
+            const dateEffet = parseDate(row["Date d'Effet"]);
+            const dateEcheance = parseDate(row["Date d'Echéance"]);
+
+            if (isNaN(dateEffet.getTime()) || isNaN(dateEcheance.getTime())) {
+                throw new Error(`Format de date invalide pour la ligne : ${JSON.stringify(row)}`);
+            }
+
             return {
                 numFeuillet: Number(row["N° Feuillet"]),
                 numeroPolice: row["N° Police"],
                 souscripteur: row["Souscripteur"],
                 immatriculation: row["Immatriculation"] || '',
-                dateEffet: new Date(row["Date d'Effet"]),
-                dateEcheance: new Date(row["Date d'Echéance"]),
+                dateEffet: dateEffet,
+                dateEcheance: dateEcheance,
                 adresse: row["Adresse"] || '',
                 usage: row["Usage"] || '',
                 marque: row["Marque"] || '',
@@ -55,15 +77,13 @@ export async function POST(request: NextRequest) {
                 telephoneAgent: row["Téléphone Agent"] || '+261 38 00 842 00',
                 creatorId: session.user!.id,
             };
-        }).filter(item => item.numFeuillet); // Filtrer les lignes sans numFeuillet valide
+        }).filter(item => item.numFeuillet); 
 
-        // 2. Créer les nouvelles attestations, en ignorant les doublons
         const result = await prisma.attestationAuto.createMany({
             data: attestationsToCreate,
             skipDuplicates: true, 
         });
 
-        // 3. Retourner le message, le compte et la liste complète des numéros traités
         return NextResponse.json({ 
             message: `${result.count} attestations importées avec succès.`,
             count: result.count,
