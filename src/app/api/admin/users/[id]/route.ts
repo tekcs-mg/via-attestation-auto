@@ -16,11 +16,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     
     try {
         const { id } = params;
-        const { name, email, role } = await request.json();
+        const { name, email, role, agenceId } = await request.json();
 
         const updatedUser = await prisma.user.update({
             where: { id },
-            data: { name, email, role },
+            data: { name, email, role, agenceId },
         });
 
         const { password: _, ...userWithoutPassword } = updatedUser;

@@ -294,6 +294,15 @@ export default function DashboardPage() {
         fetchAttestations(processedNumFeuillets);
     };
 
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+            setCurrentPage(1);
+        }, 300);
+
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
     return (
       <div className="p-8">
         <div className="mb-6">

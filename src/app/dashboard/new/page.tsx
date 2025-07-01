@@ -32,7 +32,12 @@ export default function NewAttestationPage() {
     souscripteur: '',
     immatriculation: '',
     dateEffet: new Date().toISOString().split('T')[0],
-    dateEcheance: new Date().toISOString().split('T')[0],
+    dateEcheance: (() => {
+      const date = new Date();
+      date.setFullYear(date.getFullYear() + 1);
+      date.setDate(date.getDate() - 1);
+      return date.toISOString().split('T')[0];
+    })(),
     adresse: '',
     usage: '',
     marque: '',
@@ -112,8 +117,7 @@ export default function NewAttestationPage() {
       ...formData,
       numFeuillet: Number(formData.numFeuillet) || 0,
       nombrePlaces: Number(formData.nombrePlaces) || 0,
-      agent: selectedAgence?.nom || 'AGENCE',
-      telephoneAgent: selectedAgence?.tel || 'TELEPHONE',
+      agence: selectedAgence ?? { nom: '', code: '', tel: '', email: '' }
     };
   }, [formData, agences]);
 

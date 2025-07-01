@@ -20,8 +20,8 @@ export default function Sidebar() {
   ];
 
   const adminNavItems = [
-    { href: '/dashboard/admin/users', icon: Icons.users, label: 'Gestion des Utilisateurs' },
-    { href: '/dashboard/admin/agences', icon: Icons.agency, label: 'Gestion des Agences' },
+    { href: '/dashboard/admin/users', icon: Icons.users, label: 'Utilisateurs' },
+    { href: '/dashboard/admin/agences', icon: Icons.agency, label: 'Agences' },
     { href: '/dashboard/admin/settings', icon: Icons.settings, label: 'Paramètres' },
   ];
 
@@ -72,7 +72,7 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-      <button onClick={() => setIsExpanded(!isExpanded)} className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white border rounded-full p-1">
+      <button onClick={() => setIsExpanded(!isExpanded)} className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white border border-gray-200 text-black rounded-full p-1">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
       </button>
     </aside>

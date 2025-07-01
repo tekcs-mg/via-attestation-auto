@@ -31,7 +31,7 @@ async function generateAttestationHTML(attestation : AttestationAuto): Promise<s
             <div style="width: 5.5cm; border-right: 1px dashed black; padding: 8px; display: flex; flex-direction: column;">
                 <div style="font-weight: bold; color: #1e3a8a; font-size: 11px;">VIA Assurance Madagascar</div>
                 <div style="font-size: 9px; margin-top: 8px; color: #1e3a8a;"><div style="font-weight: bold;">Masoivoho</div><div style="font-weight: normal;">Agence</div></div>
-                <div style="font-weight: bold; font-size: 9px; color: black;">${attestation.agenceId}</div>
+                <div style="font-weight: bold; font-size: 9px; color: black;">${attestation}</div>
                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fifanekena N°", "Police N°")} <div style="font-weight: bold; color: black;">${attestation.numeroPolice}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fiara N°", "Véhicule N°")} <div style="font-weight: bold; color: black;">${attestation.immatriculation}</div></div>
@@ -162,6 +162,7 @@ export async function GET(request: NextRequest) {
             where: { id: { in: ids } },
             include: {agence: { select: { nom: true, email: true, tel: true, code: true } }}
         });
+        console.log("attestations: ", attestations)
 
         if (attestations.length === 0) {
             return new Response("Aucune attestation trouvée pour les IDs fournis", { status: 404 });
