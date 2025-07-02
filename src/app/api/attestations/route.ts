@@ -14,40 +14,62 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const sortBy = searchParams.get('sortBy') || 'numFeuillet';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
+    
+    // Récupération de tous les filtres
     const search = searchParams.get('search') || '';
-    const dateFrom = searchParams.get('dateFrom');
-    const dateTo = searchParams.get('dateTo');
+    const agenceId = searchParams.get('agenceId');
     const status = searchParams.get('status');
+    const dateEffetFrom = searchParams.get('dateEffetFrom');
+    const dateEffetTo = searchParams.get('dateEffetTo');
+    const dateEcheanceFrom = searchParams.get('dateEcheanceFrom');
+    const dateEcheanceTo = searchParams.get('dateEcheanceTo');
+    const dateEmissionFrom = searchParams.get('dateEmissionFrom');
+    const dateEmissionTo = searchParams.get('dateEmissionTo');
 
     const skip = (page - 1) * limit;
 
-    let whereClause: Prisma.AttestationAutoWhereInput = {};
+    // --- NOUVELLE LOGIQUE DE CONSTRUCTION DE LA REQUÊTE ---
+    // On utilise un tableau de conditions pour s'assurer que tous les filtres sont combinés avec AND.
+    const andConditions: Prisma.AttestationAutoWhereInput[] = [];
 
+    // 1. Filtre de recherche globale
     if (search) {
       const searchNumber = parseInt(search, 10);
       const isNumericSearch = !isNaN(searchNumber);
-      whereClause.OR = [
-        { numeroPolice: { contains: search, mode: 'insensitive' } },
-        { souscripteur: { contains: search, mode: 'insensitive' } },
-        { immatriculation: { contains: search, mode: 'insensitive' } },
-        { marque: { contains: search, mode: 'insensitive' } },
-        { usage: { contains: search, mode: 'insensitive' } },
-        ...(isNumericSearch ? [{ numFeuillet: { equals: searchNumber } }] : [])
-      ];
+      andConditions.push({
+        OR: [
+          { numeroPolice: { contains: search, mode: 'insensitive' } },
+          { souscripteur: { contains: search, mode: 'insensitive' } },
+          { immatriculation: { contains: search, mode: 'insensitive' } },
+          { marque: { contains: search, mode: 'insensitive' } },
+          { usage: { contains: search, mode: 'insensitive' } },
+          ...(isNumericSearch ? [{ numFeuillet: { equals: searchNumber } }] : [])
+        ]
+      });
     }
 
-    if (dateFrom && dateTo) {
-      whereClause.dateEffet = { gte: new Date(dateFrom), lte: new Date(dateTo) };
+    // 2. Filtre par agence
+    if (agenceId) {
+      andConditions.push({ agenceId });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-    if (status === 'ACTIVE') whereClause.dateEcheance = { gte: today };
-    if (status === 'EXPIRED') whereClause.dateEcheance = { lt: today };
-    if (status === 'EXPIRING_SOON') {
-      whereClause.dateEcheance = { gte: today, lte: thirtyDaysFromNow };
+    // 3. Filtre par statut
+    if (status && status !== 'ALL') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+        if (status === 'ACTIVE') andConditions.push({ dateEcheance: { gte: today } });
+        if (status === 'EXPIRED') andConditions.push({ dateEcheance: { lt: today } });
+        if (status === 'EXPIRING_SOON') andConditions.push({ dateEcheance: { gte: today, lte: thirtyDaysFromNow } });
     }
+    
+    // 4. Filtres par plages de dates
+    if (dateEmissionFrom && dateEmissionTo) andConditions.push({ createdAt: { gte: new Date(dateEmissionFrom), lte: new Date(dateEmissionTo) } });
+    if (dateEffetFrom && dateEffetTo) andConditions.push({ dateEffet: { gte: new Date(dateEffetFrom), lte: new Date(dateEffetTo) } });
+    if (dateEcheanceFrom && dateEcheanceTo) andConditions.push({ dateEcheance: { gte: new Date(dateEcheanceFrom), lte: new Date(dateEcheanceTo) } });
+
+    // Construction de la clause 'where' finale
+    const whereClause: Prisma.AttestationAutoWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const total = await prisma.attestationAuto.count({ where: whereClause });
     const attestations = await prisma.attestationAuto.findMany({
@@ -55,7 +77,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        include: { creator: { select: { name: true, email: true } }, agence: { select: { nom: true, email: true, tel: true, code: true } } },
+        include: { creator: { select: { name: true } }, agence: { select: { nom: true } } },
     });
     
     return NextResponse.json({ 

@@ -8,7 +8,8 @@ import Modal from "@/components/Modal";
 import AttestationForm from "@/components/AttestationForm";
 import AttestationPreview from "@/components/AttestationPreview";
 
-// Type Attestation mis à jour pour inclure tous les champs
+// --- TYPES ---
+type Agence = { id: string; nom: string; };
 type Attestation = {
   id: string;
   numFeuillet: number;
@@ -22,21 +23,10 @@ type Attestation = {
   marque: string;
   nombrePlaces: number;
   dateEdition: string;
-  agence: {
-    nom: string;
-    tel?: string;
-    email?: string;
-    code?: string;
-  };
-  creator: { // Relation imbriquée
-    name: string | null;
-  };
+  agence: Agence;
+  creator: { name: string | null; };
 };
-
-type SortConfig = {
-  key: keyof Attestation | 'actions' | 'status' | null;
-  direction: 'asc' | 'desc';
-};
+type SortConfig = { key: keyof Attestation | 'actions' | 'status' | 'agence' | null; direction: 'asc' | 'desc'; };
 
 // --- COMPOSANTS INTERNES ---
 
@@ -74,10 +64,11 @@ const TableSkeleton = () => (
             <div key={i} className="flex items-center space-x-4 py-4 border-b border-gray-200">
                 <div className="h-5 w-5 bg-gray-200 rounded"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/12"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/12"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/12"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/12"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/12"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/12"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/12"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/12"></div>
             </div>
         ))}
@@ -92,38 +83,25 @@ const SortArrow = ({ direction }: { direction: 'asc' | 'desc' | 'none' }) => {
   return null;
 };
 
-// --- COMPOSANT POUR LA MODALE D'IMPORT ---
 const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (message: string, processedNumFeuillets: number[]) => void }) => {
     const [file, setFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setFile(e.target.files[0]);
-        }
+        if (e.target.files) setFile(e.target.files[0]);
     };
 
     const handleImport = async () => {
-        if (!file) {
-            setError("Veuillez sélectionner un fichier.");
-            return;
-        }
+        if (!file) { setError("Veuillez sélectionner un fichier."); return; }
         setIsImporting(true);
         setError(null);
-
         const formData = new FormData();
         formData.append('file', file);
-
         try {
-            const res = await fetch('/api/attestations/import', {
-                method: 'POST',
-                body: formData,
-            });
+            const res = await fetch('/api/attestations/import', { method: 'POST', body: formData });
             const result = await res.json();
-            if (!res.ok) {
-                throw new Error(result.error || "Une erreur inconnue est survenue.");
-            }
+            if (!res.ok) throw new Error(result.error || "Une erreur inconnue est survenue.");
             onSuccess(result.message, result.processedNumFeuillets);
         } catch (err) {
             setError((err as Error).message);
@@ -135,21 +113,12 @@ const ImportModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: (
     return (
         <Modal isOpen={true} onClose={onClose} title="Importer des Attestations depuis un CSV">
             <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                    Sélectionnez un fichier CSV avec les colonnes : "N° Feuillet", "N° Police", "Souscripteur", "Immatriculation", etc.
-                </p>
-                <input 
-                    type="file" 
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
+                <p className="text-sm text-gray-600">Sélectionnez un fichier CSV avec les colonnes requises.</p>
+                <input type="file" accept=".csv" onChange={handleFileChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <div className="flex justify-end gap-4 pt-4">
                     <button onClick={onClose} className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Annuler</button>
-                    <button onClick={handleImport} disabled={!file || isImporting} className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">
-                        {isImporting ? "Importation..." : "Importer"}
-                    </button>
+                    <button onClick={handleImport} disabled={!file || isImporting} className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50">{isImporting ? "Importation..." : "Importer"}</button>
                 </div>
             </div>
         </Modal>
@@ -161,6 +130,7 @@ export default function DashboardPage() {
     const router = useRouter();
     const [attestations, setAttestations] = useState<Attestation[]>([]);
     const [loading, setLoading] = useState(true);
+    const [agences, setAgences] = useState<Agence[]>([]);
     const [editingAttestation, setEditingAttestation] = useState<Attestation | null>(null);
     const [deletingAttestation, setDeletingAttestation] = useState<Attestation | null>(null);
     const [previewAttestation, setPreviewAttestation] = useState<Attestation | null>(null);
@@ -168,30 +138,41 @@ export default function DashboardPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'numFeuillet', direction: 'desc' });
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-    const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
-    const [statusFilter, setStatusFilter] = useState('ALL');
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    
+    const [showFilters, setShowFilters] = useState(false);
+    const [filters, setFilters] = useState({
+        search: '',
+        status: 'ALL',
+        agenceId: '',
+        dateEmissionFrom: '', dateEmissionTo: '',
+        dateEffetFrom: '', dateEffetTo: '',
+        dateEcheanceFrom: '', dateEcheanceTo: ''
+    });
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(filters.search), 500);
+        return () => clearTimeout(timer);
+    }, [filters.search]);
+
     const fetchAttestations = useCallback(async (selectAfterFetch?: number[]) => {
       setLoading(true);
-      if(!selectAfterFetch) {
-        setSelectedRows([]);
-      }
+      if(!selectAfterFetch) setSelectedRows([]);
       try {
           const params = new URLSearchParams({
               page: String(currentPage),
               limit: String(itemsPerPage),
               sortBy: sortConfig.key !== 'actions' && sortConfig.key !== 'status' ? sortConfig.key || 'numFeuillet' : 'numFeuillet',
               sortOrder: sortConfig.direction,
-              search: debouncedSearchQuery,
-              status: statusFilter,
+              search: debouncedSearch,
+              status: filters.status,
+              agenceId: filters.agenceId,
+              dateEmissionFrom: filters.dateEmissionFrom, dateEmissionTo: filters.dateEmissionTo,
+              dateEffetFrom: filters.dateEffetFrom, dateEffetTo: filters.dateEffetTo,
+              dateEcheanceFrom: filters.dateEcheanceFrom, dateEcheanceTo: filters.dateEcheanceTo,
           });
-          if (dateFilter.from) params.set('dateFrom', dateFilter.from);
-          if (dateFilter.to) params.set('dateTo', dateFilter.to);
-
+          
           const res = await fetch(`/api/attestations?${params.toString()}`);
           if (res.ok) {
               const { data, totalPages: total } = await res.json();
@@ -199,109 +180,60 @@ export default function DashboardPage() {
               setTotalPages(total);
 
               if (selectAfterFetch) {
-                  const idsToSelect = data
-                      .filter((att: Attestation) => selectAfterFetch.includes(att.numFeuillet))
-                      .map((att: Attestation) => att.id);
+                  const idsToSelect = data.filter((att: Attestation) => selectAfterFetch.includes(att.numFeuillet)).map((att: Attestation) => att.id);
                   setSelectedRows(idsToSelect);
               }
           }
-      } catch (error) {
-          console.error("Failed to fetch attestations", error);
-      } finally {
-          setLoading(false);
-      }
-    }, [currentPage, itemsPerPage, sortConfig, debouncedSearchQuery, dateFilter, statusFilter]);
+      } catch (error) { console.error("Failed to fetch attestations", error); } 
+      finally { setLoading(false); }
+    }, [currentPage, itemsPerPage, sortConfig, debouncedSearch, filters]);
   
+    useEffect(() => { fetchAttestations(); }, [fetchAttestations]);
+    
+    // --- USEEFFECT CORRIGÉ ---
     useEffect(() => {
-        fetchAttestations();
-    }, [fetchAttestations]);
-    
-    const handleFormSuccess = () => {
-        setEditingAttestation(null);
-        fetchAttestations();
+        const fetchAgences = async () => {
+            try {
+                const res = await fetch('/api/admin/agences');
+                if (!res.ok) {
+                    throw new Error(`Erreur HTTP: ${res.status}`);
+                }
+                const data = await res.json();
+                console.log("Agences récupérées:", data); // Pour le débogage
+                setAgences(data);
+            } catch (error) {
+                console.error("Impossible de charger la liste des agences:", error);
+            }
+        };
+        fetchAgences();
+    }, []);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setCurrentPage(1);
     };
 
-    const handleDeleteConfirm = async () => {
-        if (!deletingAttestation) return;
-        try {
-            await fetch(`/api/attestations/${deletingAttestation.id}`, { method: 'DELETE' });
-            setDeletingAttestation(null);
-            fetchAttestations();
-        } catch (error) {
-            console.error("Failed to delete attestation", error);
-        }
-    };
-
-    const handleRenew = (attestation: Attestation) => {
-        const { id, numFeuillet, creator, ...renewalData } = attestation;
-        const query = new URLSearchParams(renewalData as any).toString();
-        router.push(`/dashboard/new?${query}`);
-    };
-    
+    const handleFormSuccess = () => { setEditingAttestation(null); fetchAttestations(); };
+    const handleDeleteConfirm = async () => { if (!deletingAttestation) return; try { await fetch(`/api/attestations/${deletingAttestation.id}`, { method: 'DELETE' }); setDeletingAttestation(null); fetchAttestations(); } catch (error) { console.error("Failed to delete attestation", error); } };
+    const handleRenew = (attestation: Attestation) => { const { id, numFeuillet, creator, ...renewalData } = attestation; const query = new URLSearchParams(renewalData as any).toString(); router.push(`/dashboard/new?${query}`); };
     const handleExport = (all = true) => {
         let params = new URLSearchParams();
         if (all) {
-             params = new URLSearchParams({
-                search: debouncedSearchQuery,
-                status: statusFilter,
-                dateFrom: dateFilter.from,
-                dateTo: dateFilter.to
-            });
+          params = new URLSearchParams({
+            ...filters,
+            search: debouncedSearch,
+            status: filters.status,
+          });
         } else {
-            params.set('ids', selectedRows.join(','));
+          params.set('ids', selectedRows.join(','));
         }
         window.location.href = `/api/attestations/export?${params.toString()}`;
-    };
-    
-    const handlePrintSelection = () => {
-        if (selectedRows.length === 0) return;
-        const params = new URLSearchParams({
-            ids: selectedRows.join(','),
-        });
-        window.open(`/api/attestations/print?${params.toString()}`, '_blank');
-    };
-
-    const handleSelectRow = (id: string) => {
-        setSelectedRows(prev => 
-            prev.includes(id) 
-                ? prev.filter(rowId => rowId !== id) 
-                : [...prev, id]
-        );
-    };
-
-    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.checked) {
-            setSelectedRows(attestations.map(att => att.id));
-        } else {
-            setSelectedRows([]);
-        }
-    };
-    
-    const requestSort = (key: keyof Attestation) => {
-      let direction: 'asc' | 'desc' = 'asc';
-      if (sortConfig.key === key && sortConfig.direction === 'asc') {
-          direction = 'desc';
-      }
-      setSortConfig({ key, direction });
-      setCurrentPage(1);
-    };
-
+      };    const handlePrintSelection = () => { if (selectedRows.length === 0) return; const params = new URLSearchParams({ ids: selectedRows.join(',') }); window.open(`/api/attestations/print?${params.toString()}`, '_blank'); };
+    const handleSelectRow = (id: string) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]); };
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => { setSelectedRows(e.target.checked ? attestations.map(att => att.id) : []); };
+    const requestSort = (key: keyof Attestation | 'agence') => { let direction: 'asc' | 'desc' = 'asc'; if (sortConfig.key === key && sortConfig.direction === 'asc') { direction = 'desc'; } setSortConfig({ key, direction }); setCurrentPage(1); };
     const isAllSelected = attestations.length > 0 && selectedRows.length === attestations.length;
-
-    const handleImportSuccess = (message: string, processedNumFeuillets: number[]) => {
-        setIsImportModalOpen(false);
-        alert(message);
-        fetchAttestations(processedNumFeuillets);
-    };
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearchQuery(searchQuery);
-            setCurrentPage(1);
-        }, 300);
-
-        return () => clearTimeout(handler);
-    }, [searchQuery]);
+    const handleImportSuccess = (message: string, processedNumFeuillets: number[]) => { setIsImportModalOpen(false); alert(message); fetchAttestations(processedNumFeuillets); };
 
     return (
       <div className="p-8">
@@ -309,49 +241,69 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-[#1f308c]">Tableau de Bord</h1>
         </div>
 
-        <div className="flex justify-between items-center mb-6 gap-4">
+        <div className="flex justify-between items-center mb-4 gap-4">
           <div className="flex items-center gap-2">
-            <input type="text" placeholder="Rechercher..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full max-w-xs p-2 border rounded-lg text-black" />
-            <select onChange={e => setStatusFilter(e.target.value)} value={statusFilter} className="p-2 border rounded-lg text-black">
-                <option value="ALL">Tous les statuts</option>
-                <option value="ACTIVE">Actifs</option>
-                <option value="EXPIRING_SOON">Expire bientôt</option>
-                <option value="EXPIRED">Expirés</option>
-            </select>
+            <input type="text" name="search" placeholder="Rechercher..." value={filters.search} onChange={handleFilterChange} className="w-full max-w-xs p-2 border rounded-lg text-black" />
+            <button onClick={() => setShowFilters(!showFilters)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">{showFilters ? 'Masquer' : 'Filtres'}</button>
           </div>
           <div className="flex items-center gap-2">
-            {selectedRows.length > 0 ? (
-                <>
-                    <button onClick={handlePrintSelection} className="p-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600">
-                        Imprimer ({selectedRows.length})
-                    </button>
-                    <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600">
-                        Exporter ({selectedRows.length})
-                    </button>
-                </>
-            ) : ( 
-                <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black"> Tout Exporter </button> 
-            )}
+            {selectedRows.length > 0 ? ( <> <button onClick={handlePrintSelection} className="p-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600">Imprimer ({selectedRows.length})</button> <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600">Exporter ({selectedRows.length})</button> </> ) : ( <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Tout Exporter</button> )}
             <button onClick={() => setIsImportModalOpen(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Importer</button>
             <Link href="/dashboard/new"><button className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Créer</button></Link>
           </div>
         </div>
+        
+        {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-4 rounded-lg mb-6">
+                <div> 
+                    <label className="block text-sm font-medium text-gray-700">Agence</label> 
+                    <select name="agenceId" value={filters.agenceId} onChange={handleFilterChange} className="w-full p-2 mt-1 border rounded-lg text-black"> 
+                        <option value="">Toutes les agences</option> 
+                        {agences.map(a => <option key={a.id} value={a.id}>{a.nom}</option>)} 
+                    </select> 
+                </div>
+                <div> 
+                    <label className="block text-sm font-medium text-gray-700">Statut</label> 
+                    <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full p-2 mt-1 border rounded-lg text-black"> 
+                        <option value="ALL">Tous</option> 
+                        <option value="ACTIVE">Actifs</option> 
+                        <option value="EXPIRING_SOON">Expire bientôt</option> 
+                        <option value="EXPIRED">Expirés</option> 
+                    </select> 
+                </div>
+                <div></div> {/* Spacer */}
+                <div> 
+                    <label className="block text-sm font-medium text-gray-700">Date d'effet</label> 
+                    <div className="flex gap-2 mt-1">
+                        <input type="date" name="dateEffetFrom" value={filters.dateEffetFrom} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                        <input type="date" name="dateEffetTo" value={filters.dateEffetTo} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                    </div>
+                </div>
+                <div> 
+                    <label className="block text-sm font-medium text-gray-700">Date d'échéance</label> 
+                    <div className="flex gap-2 mt-1">
+                        <input type="date" name="dateEcheanceFrom" value={filters.dateEcheanceFrom} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                        <input type="date" name="dateEcheanceTo" value={filters.dateEcheanceTo} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                    </div>
+                </div>
+                <div> 
+                    <label className="block text-sm font-medium text-gray-700">Date d'émission</label> 
+                    <div className="flex gap-2 mt-1">
+                        <input type="date" name="dateEmissionFrom" value={filters.dateEmissionFrom} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                        <input type="date" name="dateEmissionTo" value={filters.dateEmissionTo} onChange={handleFilterChange} className="w-full p-2 border rounded-lg text-black" />
+                    </div>
+                </div>
+            </div>
+        )}
         
         {loading ? <TableSkeleton /> : (
           <div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
             <table className="w-full">
                 <thead className="border-b">
                     <tr>
-                        <th className="px-4 py-3">
-                            <input 
-                              type="checkbox"
-                              checked={isAllSelected}
-                              ref={input => { if (input) input.indeterminate = selectedRows.length > 0 && !isAllSelected; }}
-                              onChange={handleSelectAll}
-                              className="form-checkbox h-4 w-4"
-                            />
-                        </th>
+                        <th className="px-4 py-3"><input type="checkbox" checked={isAllSelected} ref={input => { if (input) input.indeterminate = selectedRows.length > 0 && !isAllSelected; }} onChange={handleSelectAll} className="form-checkbox h-4 w-4" /></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numFeuillet')} className="flex items-center">N° Feuillet<SortArrow direction={sortConfig.key === 'numFeuillet' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('agence')} className="flex items-center">Agence<SortArrow direction={sortConfig.key === 'agence' ? sortConfig.direction : 'none'} /></button></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numeroPolice')} className="flex items-center">N° Police<SortArrow direction={sortConfig.key === 'numeroPolice' ? sortConfig.direction : 'none'} /></button></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('souscripteur')} className="flex items-center">Souscripteur<SortArrow direction={sortConfig.key === 'souscripteur' ? sortConfig.direction : 'none'} /></button></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('immatriculation')} className="flex items-center">Immatriculation<SortArrow direction={sortConfig.key === 'immatriculation' ? sortConfig.direction : 'none'} /></button></th>
@@ -363,15 +315,9 @@ export default function DashboardPage() {
                 <tbody>
                     {attestations.map((att) => (
                         <tr key={att.id} className={`border-b hover:bg-gray-50 ${selectedRows.includes(att.id) ? 'bg-blue-50' : ''}`}>
-                            <td className="px-4 py-3">
-                                <input 
-                                  type="checkbox"
-                                  checked={selectedRows.includes(att.id)}
-                                  onChange={() => handleSelectRow(att.id)}
-                                  className="form-checkbox h-4 w-4"
-                                />
-                            </td>
+                            <td className="px-4 py-3"><input type="checkbox" checked={selectedRows.includes(att.id)} onChange={() => handleSelectRow(att.id)} className="form-checkbox h-4 w-4" /></td>
                             <td className="px-4 py-3 font-mono text-sm text-black">{`${att.numFeuillet}`.padStart(6, '0')}</td>
+                            <td className="px-4 py-3 text-black">{att.agence?.nom || 'N/A'}</td>
                             <td className="px-4 py-3 text-black">{att.numeroPolice}</td>
                             <td className="px-4 py-3 text-black">{att.souscripteur}</td>
                             <td className="px-4 py-3 text-black">{att.immatriculation}</td>
