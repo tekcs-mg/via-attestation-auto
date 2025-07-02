@@ -292,28 +292,28 @@ export default function DashboardPage() {
                 <thead className="border-b">
                     <tr>
                         <th className="px-4 py-3"><input type="checkbox" checked={isAllSelected} ref={input => { if (input) input.indeterminate = selectedRows.length > 0 && !isAllSelected; }} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-[#1F308C] focus:ring-[#1478FF]" /></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numFeuillet')} className="flex items-center">N° Feuillet<SortArrow direction={sortConfig.key === 'numFeuillet' ? sortConfig.direction : 'none'} /></button></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('agence')} className="flex items-center">Agence<SortArrow direction={sortConfig.key === 'agence' ? sortConfig.direction : 'none'} /></button></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numeroPolice')} className="flex items-center">N° Police<SortArrow direction={sortConfig.key === 'numeroPolice' ? sortConfig.direction : 'none'} /></button></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('souscripteur')} className="flex items-center">Souscripteur<SortArrow direction={sortConfig.key === 'souscripteur' ? sortConfig.direction : 'none'} /></button></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('immatriculation')} className="flex items-center">Immatriculation<SortArrow direction={sortConfig.key === 'immatriculation' ? sortConfig.direction : 'none'} /></button></th>
-                        <th className="px-4 py-3 text-left font-semibold text-black">Statut</th>
-                        <th className="px-4 py-3 text-left font-semibold text-black">Créé par</th>
-                        <th className="px-4 py-3 text-left font-semibold text-black">Actions</th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm"><button onClick={() => requestSort('numFeuillet')} className="flex items-center">N° Feuillet<SortArrow direction={sortConfig.key === 'numFeuillet' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm"><button onClick={() => requestSort('agence')} className="flex items-center">Agence<SortArrow direction={sortConfig.key === 'agence' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm"><button onClick={() => requestSort('numeroPolice')} className="flex items-center">N° Police<SortArrow direction={sortConfig.key === 'numeroPolice' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm"><button onClick={() => requestSort('souscripteur')} className="flex items-center">Souscripteur<SortArrow direction={sortConfig.key === 'souscripteur' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm"><button onClick={() => requestSort('immatriculation')} className="flex items-center">Immatriculation<SortArrow direction={sortConfig.key === 'immatriculation' ? sortConfig.direction : 'none'} /></button></th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm">Statut</th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm">Créé par</th>
+                        <th className="px-4 py-3 text-left font-semibold text-black text-sm">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {attestations.map((att) => (
                         <tr key={att.id} className={`border-b hover:bg-gray-50 ${selectedRows.includes(att.id) ? 'bg-blue-50' : ''}`}>
                             <td className="px-4 py-3"><input type="checkbox" checked={selectedRows.includes(att.id)} onChange={() => handleSelectRow(att.id)} className="form-checkbox h-4 w-4 text-[#1F308C] focus:ring-[#1478FF]" /></td>
-                            <td className="px-4 py-3 font-mono text-sm text-black">{`${att.numFeuillet}`.padStart(6, '0')}</td>
-                            <td className="px-4 py-3 text-black">{att.agence?.nom || 'N/A'}</td>
-                            <td className="px-4 py-3 text-black">{att.numeroPolice}</td>
-                            <td className="px-4 py-3 text-black">{att.souscripteur}</td>
-                            <td className="px-4 py-3 text-black">{att.immatriculation}</td>
+                            <td className="px-4 py-3 font-mono text-sm text-black text-sm">{`${att.numFeuillet}`.padStart(6, '0')}</td>
+                            <td className="px-4 py-3 text-black text-sm">{att.agence?.nom || 'N/A'}</td>
+                            <td className="px-4 py-3 text-black text-sm">{att.numeroPolice}</td>
+                            <td className="px-4 py-3 text-black text-sm">{att.souscripteur}</td>
+                            <td className="px-4 py-3 text-black text-sm">{att.immatriculation}</td>
                             <td className="px-4 py-3"><StatusPill dateEcheance={att.dateEcheance} /></td>
-                            <td className="px-4 py-3 text-black">{att.creator?.name || 'N/A'}</td>
-                            <td className="px-4 py-3 text-black">
+                            <td className="px-4 py-3 text-black text-sm">{att.creator?.name || 'N/A'}</td>
+                            <td className="px-4 py-3 text-black text-sm">
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => handleRenew(att)} title="Renouveler">🔄</button>
                                     <button onClick={() => setPreviewAttestation(att)} title="Afficher">📄</button>
