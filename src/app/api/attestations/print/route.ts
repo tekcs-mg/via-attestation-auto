@@ -34,14 +34,13 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
         </div>`;
         
     const attestationContent = `
-        <div style="width: 26cm; height: 11cm; border: 1px solid black; display: flex; font-family: sans-serif; font-size: 10px; background-color: white; padding: 4px; box-sizing: border-box;">
+        <div style="width: 28cm; height: 12cm; border: 1px solid black; display: flex; font-family: sans-serif; font-size: 10px; background-color: white; padding: 4px; box-sizing: border-box;">
             
             <!-- Colonne gauche : Talon -->
             <div style="width: 5.5cm; border-right: 1px dashed black; padding: 8px; display: flex; flex-direction: column;">
                 <div style="font-weight: bold; color: #1e3a8a; font-size: 11px;">VIA Assurance Madagascar</div>
-                <div style="font-size: 9px; margin-top: 8px; color: #1e3a8a;"><div style="font-weight: bold;">Masoivoho</div><div style="font-weight: normal;">Agence</div></div>
-                <div style="font-weight: bold; font-size: 9px; color: black;">${attestation.agence.nom}</div>
                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Masoivoho", "Agence")} <div style="font-weight: bold; color: black;">${attestation.agence.nom}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fifanekena N°", "Police N°")} <div style="font-weight: bold; color: black;">${attestation.numeroPolice}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fiara N°", "Véhicule N°")} <div style="font-weight: bold; color: black;">${attestation.immatriculation}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Mpaka fiantohana", "Souscripteur")} <div style="font-weight: bold; color: black;">${attestation.souscripteur}</div></div>
@@ -55,7 +54,7 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
             </div>
 
             <!-- Colonne centrale : Attestation -->
-            <div style="width: 15cm; padding: 4px 8px; display: flex; flex-direction: column;">
+            <div style="width: 17cm; padding: 4px 8px; display: flex; flex-direction: column;">
                 <div style="display: flex; width: 100%; align-items: center;">
                     <div style="width: 25%;"><img src='${logoUrl}' alt="logo" style="height: 40px; width: 80px; object-fit: contain;" /></div>
                     <div style="width: 50%; text-align: center;">
@@ -213,8 +212,7 @@ export async function GET(request: NextRequest) {
         
         const pdfBuffer = await page.pdf({
             printBackground: true,
-            width: '26cm',
-            height: '11cm',
+            format: 'A4',
             landscape: true,
         });
 
