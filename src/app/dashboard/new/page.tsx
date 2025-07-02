@@ -47,6 +47,11 @@ export default function NewAttestationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isValidDate = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+  };
+
   // Fetch la liste des agences au montage
   useEffect(() => {
     const fetchAgences = async () => {
@@ -111,15 +116,22 @@ export default function NewAttestationPage() {
   // Prépare les données pour l'aperçu en trouvant l'objet agence complet
   const previewData = useMemo(() => {
     const selectedAgence = agences.find(a => a.id === formData.agenceId);
+  
+    const effetValid = isValidDate(formData.dateEffet) ? formData.dateEffet : '';
+    const echeanceValid = isValidDate(formData.dateEcheance) ? formData.dateEcheance : '';
+  
     return {
       id: '',
       dateEdition: new Date().toISOString(),
       ...formData,
+      dateEffet: effetValid,
+      dateEcheance: echeanceValid,
       numFeuillet: Number(formData.numFeuillet) || 0,
       nombrePlaces: Number(formData.nombrePlaces) || 0,
       agence: selectedAgence ?? { nom: '', code: '', tel: '', email: '' }
     };
   }, [formData, agences]);
+  
 
   return (
     <div className="fixed inset-0 bg-white flex h-screen">
