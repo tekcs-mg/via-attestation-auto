@@ -93,10 +93,8 @@ export async function GET(request: Request) {
   }
 }
 
-// POST : Logique améliorée avec journalisation pour le débogage
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  console.log("session", session)
   if (!session || !session.user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
@@ -104,24 +102,44 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // On déstructure pour ne prendre que les champs attendus
     const {
-        agenceId, // Le nouvel identifiant de l'agence
+        agenceId,
         numFeuillet, numeroPolice, souscripteur, immatriculation, dateEffet,
         dateEcheance, adresse, usage, marque, nombrePlaces
     } = body;
-
-    // Validation des champs requis
-    if (!agenceId || !numFeuillet || !numeroPolice || !souscripteur) {
-        return NextResponse.json({ error: "Les champs Agence, N° Feuillet, N° Police et Souscripteur sont requis." }, { status: 400 });
+    
+    if (!agenceId || !numFeuillet || !numeroPolice || !souscripteur || !immatriculation) {
+        return NextResponse.json({ error: "Les champs Agence, N° Feuillet, N° Police, Souscripteur et Immatriculation sont requis." }, { status: 400 });
     }
+
+    // --- NOUVELLE LOGIQUE DE VALIDATION ---
+    const newDateEffet = new Date(dateEffet);
+    const newDateEcheance = new Date(dateEcheance);
+
+    // 1. Trouver la dernière attestation existante pour cette immatriculation
+    const lastExistingAttestation = await prisma.attestationAuto.findFirst({
+        where: { immatriculation: immatriculation },
+        orderBy: { dateEcheance: 'desc' }
+    });
+
+    // 2. Si une attestation existe, vérifier la cohérence des dates
+    if (lastExistingAttestation) {
+        const lastEcheance = new Date(lastExistingAttestation.dateEcheance);
+        if (newDateEffet <= lastEcheance) {
+            return NextResponse.json({ 
+                error: `Une attestation pour ce véhicule existe déjà et est valide jusqu'au ${lastEcheance.toLocaleDateString('fr-FR')}. La nouvelle date d'effet doit être postérieure.` 
+            }, { status: 409 }); // 409 Conflict
+        }
+    }
+    // --- FIN DE LA NOUVELLE LOGIQUE DE VALIDATION ---
+
 
     const dataForPrisma = {
       agenceId,
       numFeuillet: Number(numFeuillet),
       numeroPolice, souscripteur, immatriculation,
-      dateEffet: new Date(dateEffet),
-      dateEcheance: new Date(dateEcheance),
+      dateEffet: newDateEffet,
+      dateEcheance: newDateEcheance,
       adresse, usage, marque,
       nombrePlaces: Number(nombrePlaces),
       creatorId: session.user.id,
@@ -131,10 +149,16 @@ export async function POST(request: Request) {
     return NextResponse.json(newAttestation, { status: 201 });
 
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-       return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+         return NextResponse.json({ error: `Le N° Feuillet existe déjà.` }, { status: 409 });
+      }
+      return NextResponse.json({ error: `Erreur de base de données connue: ${error.message}` }, { status: 400 });
+    }
+    if (error instanceof Error && error.name === 'PrismaClientValidationError') {
+       return NextResponse.json({ error: "Erreur de validation des données.", details: error.message }, { status: 400 });
     }
     console.error("Erreur dans POST /api/attestations:", error);
-    return NextResponse.json({ error: "Erreur lors de la création de l'attestation" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur interne du serveur lors de la création." }, { status: 500 });
   }
 }
