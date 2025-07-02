@@ -190,20 +190,10 @@ export default function DashboardPage() {
   
     useEffect(() => { fetchAttestations(); }, [fetchAttestations]);
     
-    // --- USEEFFECT CORRIGÉ ---
     useEffect(() => {
         const fetchAgences = async () => {
-            try {
-                const res = await fetch('/api/admin/agences');
-                if (!res.ok) {
-                    throw new Error(`Erreur HTTP: ${res.status}`);
-                }
-                const data = await res.json();
-                console.log("Agences récupérées:", data); // Pour le débogage
-                setAgences(data);
-            } catch (error) {
-                console.error("Impossible de charger la liste des agences:", error);
-            }
+            const res = await fetch('/api/admin/agencies');
+            if (res.ok) setAgences(await res.json());
         };
         fetchAgences();
     }, []);
@@ -241,15 +231,15 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-[#1f308c]">Tableau de Bord</h1>
         </div>
 
-        <div className="flex justify-between items-center mb-4 gap-4">
+        <div className="flex justify-between items-center mb-6 gap-4">
           <div className="flex items-center gap-2">
             <input type="text" name="search" placeholder="Rechercher..." value={filters.search} onChange={handleFilterChange} className="w-full max-w-xs p-2 border rounded-lg text-black" />
-            <button onClick={() => setShowFilters(!showFilters)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">{showFilters ? 'Masquer' : 'Filtres'}</button>
+            <button onClick={() => setShowFilters(!showFilters)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">{showFilters ? 'Masquer les filtres' : 'Filtres avancés'}</button>
           </div>
           <div className="flex items-center gap-2">
-            {selectedRows.length > 0 ? ( <> <button onClick={handlePrintSelection} className="p-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600">Imprimer ({selectedRows.length})</button> <button onClick={() => handleExport(false)} className="p-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600">Exporter ({selectedRows.length})</button> </> ) : ( <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Tout Exporter</button> )}
+            {selectedRows.length > 0 ? ( <> <button onClick={handlePrintSelection} className="p-2 bg-[#1F308C] text-white font-bold rounded-lg hover:bg-blue-800">Imprimer ({selectedRows.length})</button> <button onClick={() => handleExport(false)} className="p-2 bg-[#3DBA94] text-white font-bold rounded-lg hover:bg-green-600">Exporter ({selectedRows.length})</button> </> ) : ( <button onClick={() => handleExport(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black"> Tout Exporter </button> )}
             <button onClick={() => setIsImportModalOpen(true)} className="p-2 border rounded-lg hover:bg-gray-100 text-black">Importer</button>
-            <Link href="/dashboard/new"><button className="bg-[#1f308c] text-white font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Créer</button></Link>
+            <Link href="/dashboard/new"><button className="bg-[#1F308C] text-white font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Créer</button></Link>
           </div>
         </div>
         
@@ -301,7 +291,7 @@ export default function DashboardPage() {
             <table className="w-full">
                 <thead className="border-b">
                     <tr>
-                        <th className="px-4 py-3"><input type="checkbox" checked={isAllSelected} ref={input => { if (input) input.indeterminate = selectedRows.length > 0 && !isAllSelected; }} onChange={handleSelectAll} className="form-checkbox h-4 w-4" /></th>
+                        <th className="px-4 py-3"><input type="checkbox" checked={isAllSelected} ref={input => { if (input) input.indeterminate = selectedRows.length > 0 && !isAllSelected; }} onChange={handleSelectAll} className="form-checkbox h-4 w-4 text-[#1F308C] focus:ring-[#1478FF]" /></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numFeuillet')} className="flex items-center">N° Feuillet<SortArrow direction={sortConfig.key === 'numFeuillet' ? sortConfig.direction : 'none'} /></button></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('agence')} className="flex items-center">Agence<SortArrow direction={sortConfig.key === 'agence' ? sortConfig.direction : 'none'} /></button></th>
                         <th className="px-4 py-3 text-left font-semibold text-black"><button onClick={() => requestSort('numeroPolice')} className="flex items-center">N° Police<SortArrow direction={sortConfig.key === 'numeroPolice' ? sortConfig.direction : 'none'} /></button></th>
@@ -315,7 +305,7 @@ export default function DashboardPage() {
                 <tbody>
                     {attestations.map((att) => (
                         <tr key={att.id} className={`border-b hover:bg-gray-50 ${selectedRows.includes(att.id) ? 'bg-blue-50' : ''}`}>
-                            <td className="px-4 py-3"><input type="checkbox" checked={selectedRows.includes(att.id)} onChange={() => handleSelectRow(att.id)} className="form-checkbox h-4 w-4" /></td>
+                            <td className="px-4 py-3"><input type="checkbox" checked={selectedRows.includes(att.id)} onChange={() => handleSelectRow(att.id)} className="form-checkbox h-4 w-4 text-[#1F308C] focus:ring-[#1478FF]" /></td>
                             <td className="px-4 py-3 font-mono text-sm text-black">{`${att.numFeuillet}`.padStart(6, '0')}</td>
                             <td className="px-4 py-3 text-black">{att.agence?.nom || 'N/A'}</td>
                             <td className="px-4 py-3 text-black">{att.numeroPolice}</td>
