@@ -17,6 +17,9 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
   // Récupérer les données de l'attestation
   const attestation = await prisma.attestationAuto.findUnique({
     where: { id },
+    include: {
+      agence: true, // Inclure les données de l'agence associée
+    },
   });
 
   // Si l'attestation n'est pas trouvée, afficher un message d'erreur
@@ -34,7 +37,18 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
   // Si l'attestation est trouvée, afficher la partie centrale
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <CentralAttestation attestation={attestation} />
+        <CentralAttestation attestation={{
+          ...attestation,
+          dateEffet: attestation.dateEffet.toISOString(),
+          dateEcheance: attestation.dateEcheance.toISOString(),
+          dateEdition: attestation.dateEdition.toISOString(),
+          agence: {
+            nom: attestation.agence.nom,
+            code: attestation.agence.code ?? undefined,
+            tel: attestation.agence.tel ?? undefined,
+            email: attestation.agence.email ?? undefined,
+          }
+        }} />
     </div>
   );
 }

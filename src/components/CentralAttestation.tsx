@@ -5,20 +5,25 @@ import { fr } from 'date-fns/locale';
 
 // Type pour les données de l'attestation
 type Attestation = {
-  numeroPolice: string;
-  souscripteur: string;
-  immatriculation: string;
-  dateEffet: string | Date;
-  dateEcheance: string | Date;
-  adresse: string;
-  usage: string;
-  marque: string;
-  nombrePlaces: number;
-  dateEdition: string | Date;
-  agent: string;
-  telephoneAgent: string;
-};
-
+    id: string;
+    numFeuillet: number;
+    numeroPolice: string;
+    souscripteur: string;
+    immatriculation: string;
+    dateEffet: string;
+    dateEcheance: string;
+    adresse: string;
+    usage: string;
+    marque: string;
+    nombrePlaces: number;
+    dateEdition: string;
+    agence: {
+      nom: string;
+      code?: string;
+      tel?: string;
+      email?: string;
+    }
+  };
 // Composant utilitaire pour les labels bilingues
 const BilingualLabel = ({ malagasy, francais }: { malagasy: string, francais: string }) => (
   <div className="text-[9px] text-blue-900 leading-tight flex-shrink-0">
@@ -45,8 +50,8 @@ export default function CentralAttestation({ attestation }: { attestation: Attes
                   <div className="font-bold text-black flex-grow text-center border-b-2 border-sky-200 pb-1">{attestation.numeroPolice}</div>
               </div>
               <div className="text-right flex-shrink-0 pl-4">
-                  <div><span className="font-normal text-blue-900">Agent : </span><span className="font-bold text-black">{attestation.agent}</span></div>
-                  <div><span className="font-normal text-blue-900">Tél : </span><span className="font-bold text-black">{attestation.telephoneAgent}</span></div>
+                  <div><span className="font-normal text-blue-900">Agent : </span><span className="font-bold text-black">{attestation.agence.nom}</span></div>
+                  <div><span className="font-normal text-blue-900">Tél : </span><span className="font-bold text-black">{attestation.agence.tel}</span></div>
               </div>
           </div>
           <div className="flex items-center gap-2">

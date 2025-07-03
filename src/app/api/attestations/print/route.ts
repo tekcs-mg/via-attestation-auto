@@ -67,7 +67,7 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                 <div style="border: 1px solid black; padding: 8px; margin-top: 20px; margin-bottom: 20px; font-size: 11px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                            ${bilingualLabel("Nomeran'ny fifanekena", "N° de la police")}
+                            ${bilingualLabel("Nomeraon'ny fifanekena", "N° de la police")}
                             <div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.numeroPolice}</div>
                         </div>
                         <div style="text-align: right; flex-shrink: 0; padding-left: 16px;">
@@ -88,11 +88,11 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                         <table style="width: 100%; text-align: center; margin-top: 4px; border-collapse: collapse;">
                             <thead style="background-color: #f3f4f6;"><tr>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Karazany", "Genre")}</th>
-                                <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Anaran'ny karazany", "Marque")}</th>
+                                <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Anaran'ny karazany (na karazan'ny fiara tarihiny)", "Marque (et type pour les remorques et semi remorques)")}</th>
                                 <th style="border: 1px solid black; padding: 4px;"><div style="font-size: 11px; color: #1e3a8a; line-height: 1.2;"><div style="font-weight: bold;">Nomerao nanoratana azy na ny nomeraon'ny motera</div><div style="font-weight: normal;">N° d'immatriculation ou à défaut N° du moteur</div></div></th>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Isan-toerana", "Nombre de places")}</th>
                             </tr></thead>
-                            <tbody><tr>
+                            <tbody><tr style="height: 45px">
                                 <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.usage}</td>
                                 <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.marque}</td>
                                 <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.immatriculation}</td>
