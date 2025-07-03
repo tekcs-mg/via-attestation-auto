@@ -28,17 +28,17 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
     const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, { width: 100 });
 
     const bilingualLabel = (malagasy: string, francais: string) => `
-        <div style="font-size: 9px; color: #1e3a8a; line-height: 1.2; flex-shrink: 0;">
+        <div style="font-size: 11px; color: #1e3a8a; line-height: 1.2; flex-shrink: 0;">
             <div style="font-weight: bold;">${malagasy}</div>
             <div style="font-weight: normal;">${francais}</div>
         </div>`;
         
     const attestationContent = `
-        <div style="width: 28cm; height: 12cm; border: 1px solid black; display: flex; font-family: sans-serif; font-size: 10px; background-color: white; padding: 4px; box-sizing: border-box;">
+        <div style="width: 28cm; height: 12cm; border: 1px solid black; display: flex; font-family: sans-serif; font-size: 12px; background-color: white; padding: 4px; box-sizing: border-box;">
             
             <!-- Colonne gauche : Talon -->
             <div style="width: 5.5cm; border-right: 1px dashed black; padding: 8px; display: flex; flex-direction: column;">
-                <div style="font-weight: bold; color: #1e3a8a; font-size: 11px;">VIA Assurance Madagascar</div>
+                <div style="font-weight: bold; color: #1e3a8a; font-size: 13px;">VIA Assurance Madagascar</div>
                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Masoivoho", "Agence")} <div style="font-weight: bold; color: black;">${attestation.agence.nom}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Fifanekena N°", "Police N°")} <div style="font-weight: bold; color: black;">${attestation.numeroPolice}</div></div>
@@ -47,7 +47,7 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Manan-kery", "Valable du")} <div style="font-weight: bold; color: black;">${format(new Date(attestation.dateEffet), 'dd/MM/yyyy')}</div></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">${bilingualLabel("Ka hatramin'ny", "Au")} <div style="font-weight: bold; color: black;">${format(new Date(attestation.dateEcheance), 'dd/MM/yyyy')}</div></div>
                 </div>
-                <div style="margin-top: auto; font-size: 9px; color: #1e3a8a;">
+                <div style="margin-top: auto; font-size: 11px; color: #1e3a8a; margin-bottom: 36px">
                     <div style="font-weight: bold;">Tapakila haverina amin'ny Foibe miaraka amin'ny fifanekena vonjimaika na ny fifanekena</div>
                     <div style="font-weight: normal;">Talon à retourner au siège avec la note de couverture ou la police</div>
                 </div>
@@ -58,13 +58,13 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                 <div style="display: flex; width: 100%; align-items: center;">
                     <div style="width: 25%;"><img src='${logoUrl}' alt="logo" style="height: 40px; width: 80px; object-fit: contain;" /></div>
                     <div style="width: 50%; text-align: center;">
-                        <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">FANAMARINAM-PIANTOHANA</div>
-                        <div style="font-weight: bold; font-size: 11px; color: #1e3a8a;">ATTESTATION D'ASSURANCE</div>
-                        <div style="font-size: 9px; color: #1e3a8a;">(Loi N°2020-005 du 02 Juin 2020)</div>
+                        <div style="font-weight: bold; font-size: 16px; color: #1e3a8a;">FANAMARINAM-PIANTOHANA</div>
+                        <div style="font-weight: bold; font-size: 16px; color: #1e3a8a;">ATTESTATION D'ASSURANCE</div>
+                        <div style="font-size: 12px; color: #1e3a8a;">(Loi N°2020-005 du 02 Juin 2020)</div>
                     </div>
                     <div style="width: 25%;"></div>
                 </div>
-                <div style="border: 1px solid black; padding: 8px; margin-top: 20px; margin-bottom: 20px; font-size: 9px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="border: 1px solid black; padding: 8px; margin-top: 20px; margin-bottom: 20px; font-size: 11px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
                             ${bilingualLabel("Nomeran'ny fifanekena", "N° de la police")}
@@ -82,21 +82,21 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                         <div style="display: flex; align-items: flex-end; gap: 8px; flex-grow: 1;">${bilingualLabel("ka hatramin'ny", "au")}<div style="font-weight: bold; color: black; flex-grow: 1; text-align: center; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${format(new Date(attestation.dateEcheance), 'dd MMMM yyyy', { locale: fr })}</div></div>
                     </div>
                 </div>
-                <div style="display: flex; margin-top: 4px; font-size: 9px; flex-grow: 1;">
+                <div style="display: flex; margin-top: 4px; font-size: 11px; flex-grow: 1;">
                     <div style="width: 70%; border: 1px solid black; padding: 8px;">
                         ${bilingualLabel("Fiarakodia iantohana", "Véhicule Assuré")}
                         <table style="width: 100%; text-align: center; margin-top: 4px; border-collapse: collapse;">
                             <thead style="background-color: #f3f4f6;"><tr>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Karazany", "Genre")}</th>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Anaran'ny karazany", "Marque")}</th>
-                                <th style="border: 1px solid black; padding: 4px;"><div style="font-size: 9px; color: #1e3a8a; line-height: 1.2;"><div style="font-weight: bold;">Nomerao nanoratana azy na ny nomeraon'ny motera</div><div style="font-weight: normal;">N° d'immatriculation ou à défaut N° du moteur</div></div></th>
+                                <th style="border: 1px solid black; padding: 4px;"><div style="font-size: 11px; color: #1e3a8a; line-height: 1.2;"><div style="font-weight: bold;">Nomerao nanoratana azy na ny nomeraon'ny motera</div><div style="font-weight: normal;">N° d'immatriculation ou à défaut N° du moteur</div></div></th>
                                 <th style="border: 1px solid black; padding: 4px;">${bilingualLabel("Isan-toerana", "Nombre de places")}</th>
                             </tr></thead>
                             <tbody><tr>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.usage}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.marque}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.immatriculation}</td>
-                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 9px">${attestation.nombrePlaces}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.usage}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.marque}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.immatriculation}</td>
+                                <td style="border: 1px solid black; padding: 4px; font-weight: bold; color: black; font-size: 11px">${attestation.nombrePlaces}</td>
                             </tr></tbody>
                         </table>
                     </div>
@@ -112,8 +112,8 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
             <!-- Colonne droite -->
             <div style="width: 5.5cm; border-left: 1px dashed black; display: flex; flex-direction: column;">
                 <div style="height: 50%; padding: 8px; display: flex; flex-direction: column;">
-                    <div style="font-size: 10px; text-align: left;">
-                        <div style="font-weight: bold; color: #1e3a8a; text-align: center;">VIA Assurance Madagascar</div>
+                    <div style="font-size: 12px; text-align: left;">
+                        <div style="font-weight: bold; color: #1e3a8a; text-align: center; font-size: 12px;">VIA Assurance Madagascar</div>
                         <div style="margin-top: 8px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px 8px;">
                             <span style="font-weight: bold; color: #1e3a8a;">MARQUE :</span><div style="font-weight: bold; color: black; text-align: right; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.marque}</div>
                             <span style="font-weight: bold; color: #1e3a8a;">N° IMM :</span><div style="font-weight: bold; color: black; text-align: right; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${attestation.immatriculation}</div>
@@ -121,7 +121,7 @@ async function generateAttestationHTML(attestation: AttestationWithAgence): Prom
                             <span style="font-weight: bold; color: #1e3a8a;">AU :</span><div style="font-weight: bold; color: black; text-align: right; border-bottom: 2px solid #bae6fd; padding-bottom: 4px;">${format(new Date(attestation.dateEcheance), 'dd/MM/yyyy')}</div>
                         </div>
                     </div>
-                    <div style="font-size: 9px; text-align: center; margin-top: auto; padding: 4px; border: 1px solid black;">
+                    <div style="font-size: 11px; text-align: center; margin-top: auto; padding: 4px; border: 1px solid black;">
                         <div style="color: #1e3a8a; font-weight: bold;">Tapakila apetaka eo amin'ny fitaratra alohan'ny fiara</div>
                         <div style="color: #1e3a8a;">Volet à apposer sur le pare-brise de votre véhicule</div>
                     </div>

@@ -192,7 +192,7 @@ export default function DashboardPage() {
     
     useEffect(() => {
         const fetchAgences = async () => {
-            const res = await fetch('/api/admin/agencies');
+            const res = await fetch('/api/admin/agences');
             if (res.ok) setAgences(await res.json());
         };
         fetchAgences();
