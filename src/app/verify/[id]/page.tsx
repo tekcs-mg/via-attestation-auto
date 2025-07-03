@@ -12,7 +12,7 @@ type VerifyPageProps = {
 
 // C'est un Server Component, il peut directement accéder à la base de données
 export default async function VerifyPage({ params }: VerifyPageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   // Récupérer les données de l'attestation
   const attestation = await prisma.attestationAuto.findUnique({
