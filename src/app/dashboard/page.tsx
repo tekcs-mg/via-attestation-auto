@@ -218,12 +218,21 @@ export default function DashboardPage() {
           params.set('ids', selectedRows.join(','));
         }
         window.location.href = `/api/attestations/export?${params.toString()}`;
-      };    const handlePrintSelection = () => { if (selectedRows.length === 0) return; const params = new URLSearchParams({ ids: selectedRows.join(',') }); window.open(`/api/attestations/print?${params.toString()}`, '_blank'); };
+      };    
+    //   const handlePrintSelection = () => { if (selectedRows.length === 0) return; const params = new URLSearchParams({ ids: selectedRows.join(',') }); window.open(`/api/attestations/print?${params.toString()}`, '_blank'); };
     const handleSelectRow = (id: string) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]); };
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => { setSelectedRows(e.target.checked ? attestations.map(att => att.id) : []); };
     const requestSort = (key: keyof Attestation | 'agence') => { let direction: 'asc' | 'desc' = 'asc'; if (sortConfig.key === key && sortConfig.direction === 'asc') { direction = 'desc'; } setSortConfig({ key, direction }); setCurrentPage(1); };
     const isAllSelected = attestations.length > 0 && selectedRows.length === attestations.length;
     const handleImportSuccess = (message: string, processedNumFeuillets: number[]) => { setIsImportModalOpen(false); alert(message); fetchAttestations(processedNumFeuillets); };
+    const handlePrintSelection = () => {
+        if (selectedRows.length === 0) return;
+        const params = new URLSearchParams({
+            ids: selectedRows.join(','),
+        });
+        // Ouvre la nouvelle page d'impression dans un nouvel onglet
+        window.open(`/print?${params.toString()}`, '_blank');
+    };
 
     return (
       <div className="p-8">
