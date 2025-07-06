@@ -1,6 +1,7 @@
 // Fichier: src/app/verify/[id]/page.tsx
 import { PrismaClient } from "@prisma/client";
 import CentralAttestation from "@/components/CentralAttestation";
+import DigitalCard from "@/components/DigitalCard";
 
 const prisma = new PrismaClient();
 
@@ -36,8 +37,8 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
 
   // Si l'attestation est trouvée, afficher la partie centrale
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <CentralAttestation attestation={{
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        {/* <CentralAttestation attestation={{
           ...attestation,
           dateEffet: attestation.dateEffet.toISOString(),
           dateEcheance: attestation.dateEcheance.toISOString(),
@@ -48,7 +49,8 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
             tel: attestation.agence.tel ?? undefined,
             email: attestation.agence.email ?? undefined,
           }
-        }} />
+        }} /> */}
+        <DigitalCard name={attestation.souscripteur} policyNumber={attestation.numeroPolice} expiryDate={attestation.dateEcheance.toISOString()}/>
     </div>
   );
 }
