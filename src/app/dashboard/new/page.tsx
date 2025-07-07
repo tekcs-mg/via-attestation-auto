@@ -57,13 +57,21 @@ export default function NewAttestationPage() {
     const fetchAgences = async () => {
       try {
         const res = await fetch('/api/admin/agences');
-        const data = await res.json();
-        setAgences(data);
-        // Pré-sélectionner la première agence de la liste si elle existe
-        if (data.length > 0) {
-          setFormData(prev => ({ ...prev, agenceId: data[0].id }));
+        // --- CORRECTION : Vérifier la réponse de l'API ---
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setAgences(data);
+                if (data.length > 0) {
+                    setFormData(prev => ({ ...prev, agenceId: data[0].id }));
+                }
+            } else {
+                console.error("Les données reçues pour les agences ne sont pas un tableau:", data);
+            }
+        } else {
+            console.error("Erreur HTTP lors de la récupération des agences:", res.status);
         }
-      } catch (e) { console.error("Impossible de charger les agences"); }
+      } catch (e) { console.error("Impossible de charger les agences:", e); }
     };
     fetchAgences();
   }, []);
@@ -115,7 +123,7 @@ export default function NewAttestationPage() {
   
   // Prépare les données pour l'aperçu en trouvant l'objet agence complet
   const previewData = useMemo(() => {
-    const selectedAgence = agences.find(a => a.id === formData.agenceId);
+    const selectedAgence = agences?.find(a => a.id === formData.agenceId);
   
     const effetValid = isValidDate(formData.dateEffet) ? formData.dateEffet : '';
     const echeanceValid = isValidDate(formData.dateEcheance) ? formData.dateEcheance : '';
