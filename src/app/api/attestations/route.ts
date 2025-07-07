@@ -6,7 +6,9 @@ const prisma = new PrismaClient();
 // GET : Gère maintenant les filtres par statut, date, recherche, tri et pagination
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
 
   try {
     const { searchParams } = new URL(request.url);
@@ -15,7 +17,6 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get('sortBy') || 'numFeuillet';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     
-    // Récupération de tous les filtres
     const search = searchParams.get('search') || '';
     const agenceId = searchParams.get('agenceId');
     const status = searchParams.get('status');
@@ -28,11 +29,33 @@ export async function GET(request: Request) {
 
     const skip = (page - 1) * limit;
 
-    // --- NOUVELLE LOGIQUE DE CONSTRUCTION DE LA REQUÊTE ---
-    // On utilise un tableau de conditions pour s'assurer que tous les filtres sont combinés avec AND.
     const andConditions: Prisma.AttestationAutoWhereInput[] = [];
 
-    // 1. Filtre de recherche globale
+    // --- NOUVELLE LOGIQUE DE FILTRAGE PAR RÔLE ---
+    // Si l'utilisateur n'est pas un ADMIN, on force le filtre sur son agence
+    if (session.user.role !== 'ADMIN') {
+        const userWithAgence = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { agenceId: true }
+        });
+
+        // Si l'utilisateur est assigné à une agence, on ajoute cette condition
+        if (userWithAgence?.agenceId) {
+            andConditions.push({ agenceId: userWithAgence.agenceId });
+        } else {
+            // Un utilisateur sans agence ne voit aucune attestation
+            return NextResponse.json({ data: [], total: 0, page: 1, limit, totalPages: 0 });
+        }
+    } else {
+        // Si c'est un ADMIN, on applique le filtre d'agence de l'interface (s'il y en a un)
+        if (agenceId) {
+            andConditions.push({ agenceId });
+        }
+    }
+    // --- FIN DE LA NOUVELLE LOGIQUE ---
+
+
+    // Filtre de recherche globale
     if (search) {
       const searchNumber = parseInt(search, 10);
       const isNumericSearch = !isNaN(searchNumber);
@@ -48,12 +71,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // 2. Filtre par agence
-    if (agenceId) {
-      andConditions.push({ agenceId });
-    }
-
-    // 3. Filtre par statut
+    // Filtre par statut
     if (status && status !== 'ALL') {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -63,12 +81,11 @@ export async function GET(request: Request) {
         if (status === 'EXPIRING_SOON') andConditions.push({ dateEcheance: { gte: today, lte: thirtyDaysFromNow } });
     }
     
-    // 4. Filtres par plages de dates
+    // Filtres par plages de dates
     if (dateEmissionFrom && dateEmissionTo) andConditions.push({ createdAt: { gte: new Date(dateEmissionFrom), lte: new Date(dateEmissionTo) } });
     if (dateEffetFrom && dateEffetTo) andConditions.push({ dateEffet: { gte: new Date(dateEffetFrom), lte: new Date(dateEffetTo) } });
     if (dateEcheanceFrom && dateEcheanceTo) andConditions.push({ dateEcheance: { gte: new Date(dateEcheanceFrom), lte: new Date(dateEcheanceTo) } });
 
-    // Construction de la clause 'where' finale
     const whereClause: Prisma.AttestationAutoWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const total = await prisma.attestationAuto.count({ where: whereClause });
