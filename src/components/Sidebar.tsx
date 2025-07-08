@@ -22,7 +22,7 @@ export default function Sidebar() {
   const adminNavItems = [
     { href: '/dashboard/admin/users', icon: Icons.users, label: 'Utilisateurs' },
     { href: '/dashboard/admin/agences', icon: Icons.agency, label: 'Agences' },
-    { href: '/dashboard/admin/settings', icon: Icons.settings, label: 'Paramètres' },
+    { href: '/dashboard/admin/sheets', icon: Icons.sheets, label: 'Feuillets' },
   ];
 
   const NavLink = ({ href, icon: Icon, label }: { href: string, icon: React.FC<any>, label: string }) => {

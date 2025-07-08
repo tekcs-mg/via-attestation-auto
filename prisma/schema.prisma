@@ -17,6 +17,12 @@ enum Role {
   ADMIN
 }
 
+enum FeuilletType {
+  JAUNE
+  ROUGE
+  VERT
+}
+
 // --- NOUVEAU MODÈLE POUR LES AGENCES ---
 model Agence {
   id      String  @id @default(cuid())
@@ -26,10 +32,14 @@ model Agence {
   email   String?
   adresse String?
 
+  //champs pour la gestion des stocks
+  stockFeuilletsJaunes Int @default(0)
+  stockFeuilletsRouges Int @default(0)
+  stockFeuilletsVerts  Int @default(0)
+
   // Relation : Une agence peut avoir plusieurs utilisateurs
   users   User[]
   attestations AttestationAuto[] // Relation: Une agence peut avoir plusieurs attestations
-
 }
 
 // --- MODÈLES POUR L'AUTHENTIFICATION (Next-Auth.js) ---
@@ -99,6 +109,7 @@ model VerificationToken {
 model AttestationAuto {
   id              String    @id @default(cuid())
   numFeuillet     Int       @unique
+  typeFeuillet    FeuilletType
   numeroPolice    String
   souscripteur    String
   adresse         String

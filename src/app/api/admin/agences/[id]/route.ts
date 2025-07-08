@@ -28,6 +28,27 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.role !== 'ADMIN') {
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+
+    try {
+        const { id } = params;
+        const body = await request.json();
+
+        const updatedAgence = await prisma.agence.update({
+            where: { id },
+            data: body,
+        });
+
+        return NextResponse.json(updatedAgence);
+    } catch (error) {
+        return NextResponse.json({ error: "Erreur lors de la mise à jour de l'agence." }, { status: 500 });
+    }
+}
+
 // DELETE: Supprimer une agence
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);

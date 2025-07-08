@@ -4,12 +4,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import AttestationPreview from '@/components/AttestationPreview';
+import { FeuilletType } from '@prisma/client'; // Importer l'enum
 
 // Types pour les données
-type Agence = { id: string; nom: string; tel?: string; };
+type Agence = { id: string; nom: string; tel?: string | null; };
 type AttestationData = {
   agenceId?: string;
   numFeuillet: number | string;
+  typeFeuillet: FeuilletType;
   numeroPolice: string;
   souscripteur: string;
   immatriculation: string;
@@ -28,6 +30,7 @@ export default function NewAttestationPage() {
   const [formData, setFormData] = useState<AttestationData>({
     agenceId: undefined,
     numFeuillet: '',
+    typeFeuillet: FeuilletType.JAUNE, // Valeur par défaut
     numeroPolice: '',
     souscripteur: '',
     immatriculation: '',
@@ -47,17 +50,11 @@ export default function NewAttestationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isValidDate = (dateString: string): boolean => {
-    const date = new Date(dateString);
-    return !isNaN(date.getTime());
-  };
-
   // Fetch la liste des agences au montage
   useEffect(() => {
     const fetchAgences = async () => {
       try {
         const res = await fetch('/api/admin/agences');
-        // --- CORRECTION : Vérifier la réponse de l'API ---
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data)) {
@@ -65,13 +62,9 @@ export default function NewAttestationPage() {
                 if (data.length > 0) {
                     setFormData(prev => ({ ...prev, agenceId: data[0].id }));
                 }
-            } else {
-                console.error("Les données reçues pour les agences ne sont pas un tableau:", data);
             }
-        } else {
-            console.error("Erreur HTTP lors de la récupération des agences:", res.status);
         }
-      } catch (e) { console.error("Impossible de charger les agences:", e); }
+      } catch (e) { console.error("Impossible de charger les agences"); }
     };
     fetchAgences();
   }, []);
@@ -123,23 +116,17 @@ export default function NewAttestationPage() {
   
   // Prépare les données pour l'aperçu en trouvant l'objet agence complet
   const previewData = useMemo(() => {
-    const selectedAgence = agences?.find(a => a.id === formData.agenceId);
-  
-    const effetValid = isValidDate(formData.dateEffet) ? formData.dateEffet : '';
-    const echeanceValid = isValidDate(formData.dateEcheance) ? formData.dateEcheance : '';
-  
+    const selectedAgence = agences.find(a => a.id === formData.agenceId);
     return {
       id: '',
       dateEdition: new Date().toISOString(),
       ...formData,
-      dateEffet: effetValid,
-      dateEcheance: echeanceValid,
       numFeuillet: Number(formData.numFeuillet) || 0,
       nombrePlaces: Number(formData.nombrePlaces) || 0,
-      agence: selectedAgence ?? { nom: '', code: '', tel: '', email: '' }
+      agent: selectedAgence?.nom || 'AGENCE',
+      telephoneAgent: selectedAgence?.tel || 'TELEPHONE',
     };
   }, [formData, agences]);
-  
 
   return (
     <div className="fixed inset-0 bg-white flex h-screen">
@@ -160,66 +147,76 @@ export default function NewAttestationPage() {
               ))}
             </select>
           </div>
-          {/* --- SECTION MISE À JOUR --- */}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="numFeuillet" className="block text-sm font-medium text-gray-700">Numéro de Feuillet</label>
-              <input type="number" name="numFeuillet" value={formData.numFeuillet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="number" name="numFeuillet" value={formData.numFeuillet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
             <div>
-              <label htmlFor="numeroPolice" className="block text-sm font-medium text-gray-700">Numéro de Police</label>
-              <input type="text" name="numeroPolice" value={formData.numeroPolice} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <label htmlFor="typeFeuillet" className="block text-sm font-medium text-gray-700">Type de Feuillet</label>
+              <select name="typeFeuillet" id="typeFeuillet" value={formData.typeFeuillet} onChange={handleChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black">
+                <option value={FeuilletType.JAUNE}>Jaune</option>
+                <option value={FeuilletType.ROUGE}>Rouge</option>
+                <option value={FeuilletType.VERT}>Vert</option>
+              </select>
             </div>
+          </div>
+          
+          <div>
+            <label htmlFor="numeroPolice" className="block text-sm font-medium text-gray-700">Numéro de Police</label>
+            <input type="text" name="numeroPolice" value={formData.numeroPolice} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
           </div>
 
           <div>
             <label htmlFor="souscripteur" className="block text-sm font-medium text-gray-700">Souscripteur</label>
-            <input type="text" name="souscripteur" value={formData.souscripteur} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+            <input type="text" name="souscripteur" value={formData.souscripteur} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
           </div>
           <div>
             <label htmlFor="adresse" className="block text-sm font-medium text-gray-700">Adresse</label>
-            <input type="text" name="adresse" value={formData.adresse} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+            <input type="text" name="adresse" value={formData.adresse} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="dateEffet" className="block text-sm font-medium text-gray-700">Date d'Effet</label>
-              <input type="date" name="dateEffet" value={formData.dateEffet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="date" name="dateEffet" value={formData.dateEffet} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
             <div>
               <label htmlFor="dateEcheance" className="block text-sm font-medium text-gray-700">Date d'Echéance</label>
-              <input type="date" name="dateEcheance" value={formData.dateEcheance} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="date" name="dateEcheance" value={formData.dateEcheance} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="immatriculation" className="block text-sm font-medium text-gray-700">Immatriculation</label>
-              <input type="text" name="immatriculation" value={formData.immatriculation} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="text" name="immatriculation" value={formData.immatriculation} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
             <div>
               <label htmlFor="marque" className="block text-sm font-medium text-gray-700">Marque</label>
-              <input type="text" name="marque" value={formData.marque} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="text" name="marque" value={formData.marque} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="usage" className="block text-sm font-medium text-gray-700">Usage (ex: PA)</label>
-              <input type="text" name="usage" value={formData.usage} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="text" name="usage" value={formData.usage} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
             <div>
               <label htmlFor="nombrePlaces" className="block text-sm font-medium text-gray-700">Nombre de Places</label>
-              <input type="number" name="nombrePlaces" value={formData.nombrePlaces} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1f308c] focus:border-[#1f308c] text-black" />
+              <input type="number" name="nombrePlaces" value={formData.nombrePlaces} onChange={handleChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black" />
             </div>
           </div>
         </div>
       </div>
 
+      {/* Colonne de Droite : Aperçu et Actions */}
       <div className="hidden md:flex w-2/3 h-full flex-col bg-gray-100 p-4">
         <div className="flex-grow flex items-center justify-center overflow-auto">
             <div className="transform scale-90 origin-center">
-                <AttestationPreview attestation={previewData} />
+                <AttestationPreview attestation={previewData as any} />
             </div>
         </div>
         <div className="flex-shrink-0 flex justify-end gap-2 pt-4">

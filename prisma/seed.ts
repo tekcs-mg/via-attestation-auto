@@ -5,7 +5,8 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('Password_1234', 10);
+  const password = 'Password_1234';
+  const hashedPassword = await bcrypt.hash(password, 10);
   await prisma.user.create({
     data: {
       email: 'test@via.mg',
@@ -14,7 +15,19 @@ async function main() {
       role: 'ADMIN', // ou 'USER'
     },
   });
+  await prisma.agence.create({
+    data: {
+      nom: 'Via Assurance Madagascar',
+      adresse: '',
+      email: '',
+      tel: '+261 38 00 842 00',
+      stockFeuilletsJaunes: 100,
+      stockFeuilletsRouges: 100,
+      stockFeuilletsVerts: 100,
+    },
+  });
   console.log('Utilisateur de test créé avec succès: test@via.mg / Password_1234');
+  console.log('Agence de test créée avec succès: Via Assurance Madagascar');
 }
 
 main()

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { FeuilletType, Prisma, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
     const {
         agenceId,
-        numFeuillet, numeroPolice, souscripteur, immatriculation, dateEffet,
+        numFeuillet, numeroPolice, souscripteur, immatriculation, dateEffet, typeFeuillet,
         dateEcheance, adresse, usage, marque, nombrePlaces
     } = body;
     
@@ -129,7 +129,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Les champs Agence, N° Feuillet, N° Police, Souscripteur et Immatriculation sont requis." }, { status: 400 });
     }
 
-    // --- NOUVELLE LOGIQUE DE VALIDATION ---
+    if (!typeFeuillet) {
+        return NextResponse.json({ error: "Le type de feuillet est requis." }, { status: 400 });
+    }
+
+    const newAttestation = await prisma.$transaction(async (tx) => {
+            // --- NOUVELLE LOGIQUE DE VALIDATION ---
     const newDateEffet = new Date(dateEffet);
     const newDateEcheance = new Date(dateEcheance);
 
@@ -141,28 +146,64 @@ export async function POST(request: Request) {
 
     // 2. Si une attestation existe, vérifier la cohérence des dates
     if (lastExistingAttestation) {
+        console.log("DBG: lastExisting ===> ", lastExistingAttestation)
         const lastEcheance = new Date(lastExistingAttestation.dateEcheance);
+        console.log("DBG: lastECheance ===> ", lastEcheance)
         if (newDateEffet <= lastEcheance) {
+          console.log("DBG: ERREUR MBOLA VALIDE ===> ", (newDateEffet <= lastEcheance))
+            throw new Error(`Une attestation pour ce véhicule ${immatriculation} existe déjà et est valide jusqu'au ${lastEcheance.toLocaleDateString('fr-FR')}. La nouvelle date d'effet doit être postérieure.`);
+
             return NextResponse.json({ 
-                error: `Une attestation pour ce véhicule existe déjà et est valide jusqu'au ${lastEcheance.toLocaleDateString('fr-FR')}. La nouvelle date d'effet doit être postérieure.` 
+                error: `Une attestation pour ce véhicule ${immatriculation} existe déjà et est valide jusqu'au ${lastEcheance.toLocaleDateString('fr-FR')}. La nouvelle date d'effet doit être postérieure.` 
             }, { status: 409 }); // 409 Conflict
         }
     }
-    // --- FIN DE LA NOUVELLE LOGIQUE DE VALIDATION ---
 
+      // 1. Récupérer l'agence et son stock actuel
+      const agence = await tx.agence.findUnique({
+        where: { id: agenceId },
+        select: { stockFeuilletsJaunes: true, stockFeuilletsRouges: true, stockFeuilletsVerts: true }
+      });
 
-    const dataForPrisma = {
-      agenceId,
-      numFeuillet: Number(numFeuillet),
-      numeroPolice, souscripteur, immatriculation,
-      dateEffet: newDateEffet,
-      dateEcheance: newDateEcheance,
-      adresse, usage, marque,
-      nombrePlaces: Number(nombrePlaces),
-      creatorId: session.user.id,
-    };
+      if (!agence) {
+        throw new Error("Agence non trouvée.");
+      }
 
-    const newAttestation = await prisma.attestationAuto.create({ data: dataForPrisma });
+      // 2. Vérifier et préparer la décrémentation du stock
+      let stockUpdateData: Prisma.AgenceUpdateInput = {};
+      if (typeFeuillet === FeuilletType.JAUNE) {
+        if (agence.stockFeuilletsJaunes < 1) throw new Error("Stock de feuillets jaunes épuisé pour cette agence.");
+        stockUpdateData = { stockFeuilletsJaunes: { decrement: 1 } };
+      } else if (typeFeuillet === FeuilletType.ROUGE) {
+        if (agence.stockFeuilletsRouges < 1) throw new Error("Stock de feuillets rouges épuisé pour cette agence.");
+        stockUpdateData = { stockFeuilletsRouges: { decrement: 1 } };
+      } else if (typeFeuillet === FeuilletType.VERT) {
+        if (agence.stockFeuilletsVerts < 1) throw new Error("Stock de feuillets verts épuisé pour cette agence.");
+        stockUpdateData = { stockFeuilletsVerts: { decrement: 1 } };
+      }
+
+      // 3. Mettre à jour le stock de l'agence
+      await tx.agence.update({
+        where: { id: agenceId },
+        data: stockUpdateData
+      });
+
+      // 4. Créer l'attestation
+      const dataForPrisma = {
+        agenceId,
+        numFeuillet: Number(numFeuillet),
+        typeFeuillet,
+        numeroPolice, souscripteur, immatriculation,
+        dateEffet: new Date(dateEffet),
+        dateEcheance: new Date(dateEcheance),
+        adresse, usage, marque,
+        nombrePlaces: Number(nombrePlaces),
+        creatorId: session.user!.id,
+      };
+      
+      return tx.attestationAuto.create({ data: dataForPrisma });
+    });
+
     return NextResponse.json(newAttestation, { status: 201 });
 
   } catch (error) {
@@ -176,6 +217,6 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: "Erreur de validation des données.", details: error.message }, { status: 400 });
     }
     console.error("Erreur dans POST /api/attestations:", error);
-    return NextResponse.json({ error: "Erreur interne du serveur lors de la création." }, { status: 500 });
+    return NextResponse.json({ error: `Erreur interne du serveur lors de la création. : ${error}` }, { status: 500 });
   }
 }
