@@ -28,7 +28,7 @@ type Attestation = {
 
 // Composant utilitaire pour les labels bilingues pour éviter la répétition
 const BilingualLabel = ({ malagasy, francais }: { malagasy: string, francais: string }) => (
-  <div className="text-[9px] text-blue-900 leading-tight flex-shrink-0">
+  <div className="text-[11px] text-blue-900 leading-tight flex-shrink-0">
     <div className="font-bold">{malagasy}</div>
     <div className="font-normal">{francais}</div>
   </div>
@@ -44,15 +44,17 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
   };
 
   return (
-    <div className="w-[982.67px] h-[415.74px] border border-black flex text-[10px] font-sans bg-white p-1">
+    <div className="w-[28cm] h-[12cm] border border-black flex text-[10px] font-sans bg-white p-1">
 
       {/* Colonne gauche : Talon */}
-      <div className="w-[21.15%] border-r border-dashed border-black px-2 py-1 flex flex-col">
-        <div className="font-bold text-blue-900 text-[11px]">VIA Assurance Madagascar</div>
-        <div className="text-[9px] mt-2 text-blue-900"><div className="font-bold">Masoivoho</div><div className="font-normal">Agence</div></div>
-        <div className="font-bold text-[9px] text-black">{attestation?.agence?.nom || ''}</div>
+      <div className="w-[5.5cm] border-r border-dashed border-black px-2 py-1 flex flex-col">
+        <div className="font-bold text-blue-900 text-[13px]">VIA Assurance Madagascar</div>
 
         <div className="mt-3 space-y-2">
+        <div className="flex justify-between items-center">
+            <BilingualLabel malagasy="Masoivoho" francais="Agence" />
+            <div className="font-bold text-black">{attestation?.agence?.nom || ''}</div>
+          </div>
           <div className="flex justify-between items-center">
             <BilingualLabel malagasy="Fifanekena N°" francais="Police N°" />
             <div className="font-bold text-black">{attestation.numeroPolice}</div>
@@ -82,14 +84,14 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
           </div>
         </div>
 
-        <div className="mt-auto text-[9px] text-blue-900">
+        <div className="mt-auto text-[11px] text-blue-900 mb-8">
           <div className="font-bold">Tapakila haverina amin'ny Foibe miaraka amin'ny fifanekena vonjimaika na ny fifanekena</div>
           <div className="font-normal">Talon à retourner au siège avec la note de couverture ou la police</div>
         </div>
       </div>
 
       {/* Colonne centrale : Attestation */}
-      <div className="w-[57,692%] px-2 py-1 flex flex-col">
+      <div className="w-[17cm] px-2 py-1 flex flex-col">
         <div className="flex w-full items-center">
           {/* Colonne de gauche pour le logo (prend 1/4 de la largeur) */}
           <div className="w-1/4">
@@ -98,16 +100,16 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
 
           {/* Colonne centrale pour le texte (prend la moitié de la largeur) */}
           <div className="w-1/2 text-center">
-            <div className="font-bold text-[11px] text-blue-900">FANAMARINAM-PIANTOHANA</div>
-            <div className="font-bold text-[11px] text-blue-900">ATTESTATION D'ASSURANCE</div>
-            <div className="text-[9px] text-blue-900">(Loi N°2020-005 du 02 Juin 2020)</div>
+            <div className="font-bold text-[16px] text-blue-900">FANAMARINAM-PIANTOHANA</div>
+            <div className="font-bold text-[16px] text-blue-900">ATTESTATION D'ASSURANCE</div>
+            <div className="text-[12px] text-blue-900">(Loi N°2020-005 du 02 Juin 2020)</div>
           </div>
 
           {/* Colonne de droite, invisible, pour équilibrer (prend 1/4 de la largeur) */}
           <div className="w-1/4"></div>
         </div>
 
-        <div className="border border-black p-2 mt-5 mb-5 text-[9px] space-y-2">
+        <div className="p-0 mt-5 mb-5 text-[11px] space-y-2">
           <div className="flex justify-between">
             <div className="flex items-center gap-2 w-full">
               <BilingualLabel malagasy="Nomeran'ny fifanekena" francais="N° de la police" />
@@ -144,19 +146,19 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
 
 
         <BilingualLabel malagasy="Fiarakodia iantohana" francais="Véhicule Assuré" />
-        <div className="flex mt-1 text-[9px] flex-grow border border-black p-2">
+        <div className="flex mt-1 text-[11px] flex-grow">
           <div className="w-[70%]">
             <table className="w-full text-center mt-1 border-collapse">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="border border-black p-1"><BilingualLabel malagasy="Karazany" francais="Genre" /></th>
-                  <th className="border border-black p-1"><BilingualLabel malagasy="Anaran'ny karazany" francais="Marque" /></th>
-                  <th className="border border-black p-1"><div className="text-[9px] text-blue-900 leading-tight"><div className="font-bold">Nomerao nanoratana azy...</div><div className="font-normal">N° d'immatriculation...</div></div></th>
+                  <th className="border border-black p-1"><BilingualLabel malagasy="Anaran'ny karazany (na karazan'ny fiara tarihiny)" francais="Marque (et type pour les remorques et semi remorques)" /></th>
+                  <th className="border border-black p-1"><div className="text-[11px] text-blue-900 leading-tight"><div className="font-bold">Nomerao nanoratana azy na ny nomeraon'ny motera</div><div className="font-normal">N° d'immatriculation ou à défaut N° du moteur</div></div></th>
                   <th className="border border-black p-1"><BilingualLabel malagasy="Isan-toerana" francais="Nombre de places" /></th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr style={{ height: '50px' }}>
                   <td className="border border-black p-1 font-bold text-black">{attestation.usage}</td>
                   <td className="border border-black p-1 font-bold text-black">{attestation.marque}</td>
                   <td className="border border-black p-1 font-bold text-black">{attestation.immatriculation}</td>
@@ -181,10 +183,10 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne droite : Volet à coller */}
-      <div className="w-[21.153%] border-l border-dashed border-black flex flex-col">
+      <div className="w-[5.5cm] border-l border-dashed border-black flex flex-col">
         <div className="h-1/2 p-2 flex flex-col">
-          <div className="text-[10px] text-left">
-            <div className="font-bold text-blue-900">VIA Assurance Madagascar</div>
+          <div className="text-[11px] text-left">
+            <div className="font-bold text-blue-900 text-[13px]">VIA Assurance Madagascar</div>
             {/* --- SECTION MISE À JOUR --- */}
             <div className="mt-2 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-2">
               <span className="font-bold text-blue-900">MARQUE :</span>
@@ -205,7 +207,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
             </div>
           </div>
 
-          <div className="text-[9px] mt-auto ">
+          <div className="text-[10px] mt-auto ">
             <div className="text-blue-900 font-bold">Tapakila apetaka eo amin'ny fitaratra alohan'ny fiara</div>
             <div className="text-blue-900">Volet à apposer sur le pare-brise de votre véhicule</div>
           </div>
