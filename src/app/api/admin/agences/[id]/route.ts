@@ -4,8 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
-const prisma = new PrismaClient();
-
+import prisma from "@/lib/prisma";
 // PUT: Mettre à jour une agence
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);

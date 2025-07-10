@@ -10,7 +10,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 import QRCode from 'qrcode';
 
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 type AttestationWithAgence = AttestationAuto & {
   agence: {

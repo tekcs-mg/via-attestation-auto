@@ -4,9 +4,7 @@ import { Prisma, PrismaClient, FeuilletType } from "@prisma/client";
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";   
-
-const prisma = new PrismaClient();
-
+import prisma from "@/lib/prisma";
 /**
  * GET: Récupère les stocks des agences.
  * - ADMIN: Retourne les stocks de toutes les agences.

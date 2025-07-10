@@ -1,11 +1,10 @@
 // Fichier: src/app/api/admin/agences/route.ts
 
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-const prisma = new PrismaClient();
-
+import prisma from "@/lib/prisma";
 // GET: Récupérer toutes les agences
 /**
  * GET: Récupère la liste des agences en fonction du rôle de l'utilisateur.

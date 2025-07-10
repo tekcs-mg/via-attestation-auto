@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 async function main() {
   const password = 'Password_1234';

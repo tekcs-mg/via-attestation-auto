@@ -2,7 +2,8 @@ import { FeuilletType, Prisma, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
+
 // GET : Gère maintenant les filtres par statut, date, recherche, tri et pagination
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);

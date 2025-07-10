@@ -4,7 +4,7 @@ import { PrismaClient, Role } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 // L'objet de configuration est maintenant défini directement dans ce fichier
 export const authOptions: NextAuthOptions = {

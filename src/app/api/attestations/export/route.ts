@@ -5,8 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Papa from 'papaparse';
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -27,43 +26,58 @@ export async function GET(request: NextRequest) {
         } else {
             // Sinon, on applique les filtres généraux (identiques à la recherche du tableau de bord)
             const search = searchParams.get('search') || '';
-            const dateFrom = searchParams.get('dateFrom');
-            const dateTo = searchParams.get('dateTo');
+            const agenceId = searchParams.get('agenceId');
             const status = searchParams.get('status');
+            const dateEffetFrom = searchParams.get('dateEffetFrom');
+            const dateEffetTo = searchParams.get('dateEffetTo');
+            const dateEcheanceFrom = searchParams.get('dateEcheanceFrom');
+            const dateEcheanceTo = searchParams.get('dateEcheanceTo');
+            const dateEmissionFrom = searchParams.get('dateEmissionFrom');
+            const dateEmissionTo = searchParams.get('dateEmissionTo');
+
+            const andConditions: Prisma.AttestationAutoWhereInput[] = [];
 
             if (search) {
                 const searchNumber = parseInt(search, 10);
                 const isNumericSearch = !isNaN(searchNumber);
-                whereClause.OR = [
-                    { numeroPolice: { contains: search, mode: 'insensitive' } },
-                    { souscripteur: { contains: search, mode: 'insensitive' } },
-                    { immatriculation: { contains: search, mode: 'insensitive' } },
-                    // ... autres champs de recherche
-                    ...(isNumericSearch ? [{ numFeuillet: { equals: searchNumber } }] : [])
-                ];
+                andConditions.push({
+                    OR: [
+                        { numeroPolice: { contains: search, mode: 'insensitive' } },
+                        { souscripteur: { contains: search, mode: 'insensitive' } },
+                        { immatriculation: { contains: search, mode: 'insensitive' } },
+                        ...(isNumericSearch ? [{ numFeuillet: { equals: searchNumber } }] : [])
+                    ]
+                });
             }
-            if (dateFrom && dateTo) {
-                whereClause.dateEffet = { gte: new Date(dateFrom), lte: new Date(dateTo) };
+            if (agenceId) andConditions.push({ agenceId });
+            if (dateEmissionFrom && dateEmissionTo) andConditions.push({ createdAt: { gte: new Date(dateEmissionFrom), lte: new Date(dateEmissionTo) } });
+            if (dateEffetFrom && dateEffetTo) andConditions.push({ dateEffet: { gte: new Date(dateEffetFrom), lte: new Date(dateEffetTo) } });
+            if (dateEcheanceFrom && dateEcheanceTo) andConditions.push({ dateEcheance: { gte: new Date(dateEcheanceFrom), lte: new Date(dateEcheanceTo) } });
+
+            if (status && status !== 'ALL') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+                if (status === 'ACTIVE') andConditions.push({ dateEcheance: { gte: today } });
+                if (status === 'EXPIRED') andConditions.push({ dateEcheance: { lt: today } });
+                if (status === 'EXPIRING_SOON') andConditions.push({ dateEcheance: { gte: today, lte: thirtyDaysFromNow } });
             }
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-            if (status === 'ACTIVE') whereClause.dateEcheance = { gte: today };
-            if (status === 'EXPIRED') whereClause.dateEcheance = { lt: today };
-            if (status === 'EXPIRING_SOON') {
-              whereClause.dateEcheance = { gte: today, lte: thirtyDaysFromNow };
+
+            if (andConditions.length > 0) {
+                whereClause = { AND: andConditions };
             }
         }
 
         const attestations = await prisma.attestationAuto.findMany({
             where: whereClause,
-            include: { creator: { select: { name: true } }, agence : { select: { nom: true, code: true, tel: true, email: true } }},
+            include: { creator: { select: { name: true } }, agence : { select: { nom: true, tel: true } }},
             orderBy: { numFeuillet: 'desc' },
         });
 
         // Formatage des données pour le fichier CSV
         const dataForCsv = attestations.map(att => ({
             "N° Feuillet": att.numFeuillet,
+            "Type de Feuillet": att.typeFeuillet, // CHAMP AJOUTÉ
             "N° Police": att.numeroPolice,
             "Souscripteur": att.souscripteur,
             "Immatriculation": att.immatriculation,
@@ -75,7 +89,7 @@ export async function GET(request: NextRequest) {
             "Adresse": att.adresse,
             "Créé par": att.creator.name,
             "Agence": att.agence.nom,
-            "Tel": att.agence.tel,
+            "Tel Agence": att.agence.tel,
             "Date de Création": att.createdAt.toLocaleDateString('fr-FR'),
         }));
 

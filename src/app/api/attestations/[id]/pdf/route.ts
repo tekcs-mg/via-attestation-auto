@@ -6,9 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { format } from "date-fns";
 import { fr } from 'date-fns/locale';
-
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 // --- FONCTION POUR GENERER LE HTML DE L'ATTESTATION ---
 function generateAttestationHTML(attestation: AttestationAuto): string {
     const styles = {

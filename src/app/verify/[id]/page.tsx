@@ -3,7 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import CentralAttestation from "@/components/CentralAttestation";
 import DigitalCard from "@/components/DigitalCard";
 
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
+
 
 type VerifyPageProps = {
   params: {

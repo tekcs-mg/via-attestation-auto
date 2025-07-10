@@ -1,12 +1,9 @@
 // Fichier : src/app/api/attestations/[id]/route.ts
 
-import { Prisma, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-
-const prisma = new PrismaClient();
-
+import prisma from "@/lib/prisma";
 // Fonction pour récupérer une seule attestation par son ID
 export async function GET(request: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
