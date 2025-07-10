@@ -91,7 +91,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne centrale : Attestation */}
-      <div className="w-[17.1cm] px-2 py-1 flex flex-col">
+      <div className="w-[17.4cm] px-2 py-1 flex flex-col">
         <div className="flex w-full items-center">
           {/* Colonne de gauche pour le logo (prend 1/4 de la largeur) */}
           <div className="w-1/4">
