@@ -44,7 +44,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
   };
 
   return (
-    <div className="w-[28cm] h-[12cm] border border-black flex text-[10px] font-sans bg-white p-1">
+    <div className="w-[28cm] h-[12cm] border border-black flex text-[10px] font-sans bg-white">
 
       {/* Colonne gauche : Talon */}
       <div className="w-[5.5cm] border-r border-dashed border-black px-2 py-1 flex flex-col">
