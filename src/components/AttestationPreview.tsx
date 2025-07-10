@@ -47,7 +47,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
     <div className="w-[28cm] h-[12.0cm] border border-black flex text-[10px] font-sans bg-white p-1">
 
       {/* Colonne gauche : Talon */}
-      <div className="w-[5.7cm] border-r border-dashed border-black px-2 py-1 flex flex-col">
+      <div className="w-[5.6cm] border-r border-dashed border-black px-2 py-1 flex flex-col">
         <div className="font-bold text-blue-900 text-[13px]">VIA Assurance Madagascar</div>
 
         <div className="mt-3 space-y-2">
@@ -91,7 +91,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne centrale : Attestation */}
-      <div className="w-[17.4cm] px-2 py-1 flex flex-col">
+      <div className="w-[17.6cm] px-2 py-1 flex flex-col">
         <div className="flex w-full items-center">
           {/* Colonne de gauche pour le logo (prend 1/4 de la largeur) */}
           <div className="w-1/4">
@@ -183,7 +183,7 @@ export default function AttestationPreview({ attestation }: { attestation: Attes
       </div>
 
       {/* Colonne droite : Volet à coller */}
-      <div className="w-[5.7cm] border-l border-dashed border-black flex flex-col">
+      <div className="w-[5.6cm] border-l border-dashed border-black flex flex-col">
         <div className="h-1/2 p-2 flex flex-col">
           <div className="text-[11px] text-left">
             <div className="font-bold text-blue-900 text-[13px]">VIA Assurance Madagascar</div>
